@@ -1,0 +1,10 @@
+{
+  "name": "Rahul's To-do Tracker",
+  "short_name": "To-do Tracker",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fcfbf8",
+  "theme_color": "#0c2146",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
