@@ -325,6 +325,37 @@ td{border-top-color:#eee8da}
 .tdate.today{color:var(--amb)}
 @media(max-width:700px){.side{padding:0 8px;overflow-x:auto}.side button{background:transparent!important;flex:none}.pghead h2{font-size:21px}main{padding:16px 12px 32px}.stats{grid-template-columns:repeat(2,1fr)}.stat:nth-child(n){border-top:1px solid var(--line)}}
 
+/* ===== notes ===== */
+.f label.chk{display:flex;align-items:center;gap:8px;color:var(--ink);font-size:14px;margin:0}.f input[type=checkbox]{width:auto}
+.nlay{display:grid;grid-template-columns:210px 1fr;gap:20px;align-items:start}
+.nfold{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px;box-shadow:var(--sh);position:sticky;top:12px}
+.nfold button.nf{display:flex;width:100%;align-items:center;gap:8px;text-align:left;border:0;background:transparent;box-shadow:none;padding:9px 10px;border-radius:6px;font-weight:500;color:#44526a;position:relative}
+.nfold button.nf:hover{background:rgba(201,160,47,.12)}
+.nf .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.nf i{font-style:normal;font-size:11px;background:var(--cream);border-radius:10px;padding:0 7px;font-weight:600;color:#5a5f6b}
+.nf.on{background:var(--cream)!important;color:var(--brand);font-weight:600}
+.nf.on::before{content:"";position:absolute;left:-8px;top:7px;bottom:7px;width:3px;border-radius:0 3px 3px 0;background:var(--gold)}
+.nfsep{border-top:1px solid var(--line);margin:6px 2px}
+.nfold button.nfadd{display:flex;width:100%;align-items:center;gap:8px;border:1px dashed #cdbf94;background:transparent;box-shadow:none;color:var(--brand);padding:8px 10px;margin-top:4px}
+.nbar{display:flex;gap:10px;margin-bottom:14px}
+.nbar input{flex:1;min-width:0;font:inherit;padding:8px 11px;border:1px solid var(--line);border-radius:6px;background:#fff}
+.nhead{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.nhead h3{margin:0 auto 0 0;font:700 19px "Source Serif 4",Georgia,serif;color:var(--brand)}
+.nhead small{color:var(--mute);font-size:12px}
+.ngrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-bottom:18px}
+.ncard{position:relative;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 14px 10px;cursor:pointer;box-shadow:var(--sh);min-height:132px;display:flex;flex-direction:column;outline:none}
+.ncard:hover,.ncard:focus-visible{border-color:#cdbf94}
+.ncard.pinned{border-top:3px solid var(--gold)}
+.ncard h4{margin:0 30px 6px 0;font-size:15px;font-weight:600;word-break:break-word}
+.ncard p{margin:0;color:#4a4f5c;white-space:pre-wrap;word-break:break-word;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden;flex:1}
+.npin{position:absolute;top:8px;right:8px;border:0!important;background:transparent;box-shadow:none!important;padding:4px 5px;color:#9aa0ad}
+.npin:hover{background:var(--cream);color:var(--gold2)}.npin.on{color:var(--gold2)}.npin.on svg{fill:currentColor}
+.nmeta{display:flex;gap:8px;align-items:center;margin-top:10px;font-size:11.5px;color:var(--mute)}
+.nchip{background:var(--cream);border-radius:4px;padding:0 7px;color:#5a5f6b}
+.nlab{font-size:12px;font-weight:600;color:var(--mute);margin:2px 0 8px;display:flex;align-items:center;gap:6px}
+.nlab svg.i{width:13px;height:13px}
+@media(max-width:700px){.nlay{display:block}.nfold{display:flex;overflow-x:auto;position:static;margin-bottom:12px;gap:4px}.nfold button.nf,.nfold button.nfadd{width:auto;white-space:nowrap;margin:0}.nf.on::before{display:none}.nfsep{display:none}}
+
 /* ---- printing: a numbered checklist, built into #printArea and the only thing printed ---- */
 #printArea{display:none;font:12px/1.35 Arial,"Segoe UI",sans-serif;color:#000}
 #printArea h1{font-size:19px;margin:0 0 3px}
@@ -371,6 +402,8 @@ td{border-top-color:#eee8da}
 <symbol id="i-right" viewBox="0 0 24 24"><path d="m9.5 6 6 6-6 6"/></symbol>
 <symbol id="i-note" viewBox="0 0 24 24"><path d="M5 4h14v12l-4 4H5z"/><path d="M15 20v-4h4M8 9h8M8 13h4"/></symbol>
 <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+<symbol id="i-pin" viewBox="0 0 24 24"><path d="M9 3.5h6l-1 6 3 3.5H7l3-3.5z"/><path d="M12 13v7.5"/></symbol>
+<symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5H9l2 2.2h8.5A1.5 1.5 0 0 1 21 8.7v9.8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z"/></symbol>
 </defs></svg>
 <div id="busy"></div>
 <header>
@@ -387,6 +420,7 @@ td{border-top-color:#eee8da}
 <nav class="side">
   <button id="sTodo" class="on" onclick="setSection('todo')"><svg class="i"><use href="#i-todo"/></svg>To-do<span class="bd" id="sBadge" title="Overdue + target today"></span></button>
   <button id="sRead" onclick="setSection('read')"><svg class="i"><use href="#i-book"/></svg>Reading list</button>
+  <button id="sNotes" onclick="setSection('notes')"><svg class="i"><use href="#i-note"/></svg>Notes</button>
 </nav>
 <div class="shell">
 
@@ -480,7 +514,36 @@ td{border-top-color:#eee8da}
       </table>
     </div>
   </div>
+  <div id="notesWrap" style="display:none">
+    <div class="nlay">
+      <aside class="nfold" id="nFolders" aria-label="Note folders"></aside>
+      <section>
+        <div class="nbar">
+          <input type="search" id="nQ" placeholder="Search notes&hellip;" oninput="renderNotes()">
+          <button class="pri" onclick="noteOpen()"><svg class="i"><use href="#i-plus"/></svg>New note</button>
+        </div>
+        <div class="nhead" id="nHead"></div>
+        <div id="nList"></div>
+      </section>
+    </div>
+  </div>
 </main>
+<div class="modal" id="mNote"><div class="box" style="max-width:680px">
+  <h2 id="nH">New note</h2>
+  <div class="f">
+    <div class="w"><label>Title</label><input id="nTitle" maxlength="300"></div>
+    <div><label>Folder</label><select id="nFolder" onchange="nFolderPick()"></select></div>
+    <div style="display:flex;align-items:flex-end;padding-bottom:6px"><label class="chk"><input type="checkbox" id="nPin"> Pin to top</label></div>
+    <div class="w"><label>Note</label><textarea id="nBody" style="min-height:260px"></textarea></div>
+  </div>
+  <div class="foot"><button class="danger" id="nDel" style="margin-right:auto" onclick="noteDel()">Delete</button><button onclick="closeM('mNote')">Cancel</button><button class="pri" onclick="noteSave()">Save</button></div>
+</div></div>
+<div class="modal" id="mFolder"><div class="box" style="max-width:420px">
+  <h2 id="nfH">New folder</h2>
+  <div class="f"><div class="w"><label>Folder name</label><input id="nfName" maxlength="80" onkeydown="if(event.key==='Enter')nfSave()"></div></div>
+  <div id="nfMsg" style="color:var(--red);min-height:18px;margin-top:6px"></div>
+  <div class="foot"><button onclick="nfCancel()">Cancel</button><button class="pri" onclick="nfSave()">Save</button></div>
+</div></div>
 </div>
 
 <!-- To do modal -->
@@ -594,7 +657,7 @@ td{border-top-color:#eee8da}
   function get(k,d){try{var v=LS.getItem(P+k);return v?JSON.parse(v):d}catch(e){return d}}
   var warned=false;
   function put(k,v){try{LS.setItem(P+k,JSON.stringify(v))}catch(e){if(!warned){warned=true;alert('This browser cannot store the offline copy (private window or storage full). Changes made now may be lost.')}}}
-  var cfg=get('cfg',{url:'',key:''}),cache=get('cache',{data:null,reading:null}),queue=get('queue',[]),issues=get('issues',[]),lastSync=get('last',0);
+  var cfg=get('cfg',{url:'',key:''}),cache=get('cache',{data:null,reading:null,notes:null}),queue=get('queue',[]),issues=get('issues',[]),lastSync=get('last',0);
   var flushing=false,dirty=false,state='',lastErr=null,connOpen=false;
 
   /* ---------- helpers ---------- */
@@ -605,6 +668,7 @@ td{border-top-color:#eee8da}
   function urg(v){return v==='Urgent'?'Urgent':'Not urgent'}
   function idx(a,id){for(var i=0;i<a.length;i++)if(a[i].id===id)return i;return -1}
   function busyOff(){try{window.busy(false)}catch(e){}}
+  function nowStr(){try{return new Date().toLocaleString('sv-SE',{timeZone:'Asia/Kolkata'}).slice(0,16)}catch(e){return new Date().toISOString().slice(0,16).replace('T',' ')}}
   function say(m){try{window.toast(m)}catch(e){}}
 
   /* ---------- network ---------- */
@@ -651,6 +715,20 @@ td{border-top-color:#eee8da}
       (a[0]||[]).forEach(function(l){var s=String(l),i=s.lastIndexOf(','),n=i<0?s.trim():s.slice(0,i).trim(),p=i<0?'':s.slice(i+1).replace(/\D/g,'');if(n){names.push(n);ph[n]=p}});
       d.staff=names;d.phones=ph;return viewData()},
     saveSettings:function(a){var d=needData();d.settings={email:String(a[0]||''),hour:Number(a[1])||8};return viewData()},
+    /* notes */
+    saveNote:function(a){var N=cache.notes;if(!N)return true;var p=a[0],i=idx(N.notes,p.id),old=i>=0?N.notes[i]:null;
+      var row={id:p.id,title:String(p.title||'').slice(0,300),body:String(p.body||'').slice(0,40000),folder:norm(p.folder).slice(0,80),pinned:!!p.pinned,created:old?old.created:(p.created||nowStr()),updated:p.updated||nowStr()};
+      if(old)N.notes[i]=row;else N.notes.push(row);
+      if(row.folder&&!N.folders.some(function(f){return f.toLowerCase()===row.folder.toLowerCase()}))N.folders.push(row.folder);return true},
+    deleteNote:function(a){var N=cache.notes;if(!N)return true;var i=idx(N.notes,a[0]);if(i>=0)N.notes.splice(i,1);return true},
+    saveNoteFolders:function(a){var N=cache.notes;if(!N)return true;var seen={},out=[];
+      (a[0]||[]).forEach(function(x){var n=norm(x).slice(0,80);if(!n||seen[n.toLowerCase()])return;seen[n.toLowerCase()]=1;out.push(n)});N.folders=out;return true},
+    renameNoteFolder:function(a){var N=cache.notes;if(!N)return true;var from=norm(a[0]),to=norm(a[1]).slice(0,80),at=N.folders.indexOf(from);
+      if(!to)throw new Error('Name cannot be empty');if(at<0)throw new Error('Folder not found');
+      N.folders.forEach(function(f,i){if(i!==at&&f.toLowerCase()===to.toLowerCase())throw new Error('"'+to+'" already exists')});
+      N.folders[at]=to;N.notes.forEach(function(n){if(n.folder===from)n.folder=to});return true},
+    deleteNoteFolder:function(a){var N=cache.notes;if(!N)return true;var f=norm(a[0]);N.folders=N.folders.filter(function(x){return x!==f});
+      N.notes.forEach(function(n){if(n.folder===f)n.folder=''});return true},
     /* reading list */
     saveReading:function(a){var R=cache.reading;if(!R)return true;var p=a[0],i=idx(R.rows,p.id),old=i>=0?R.rows[i]:null;
       var row={id:p.id,title:String(p.title||''),relating:norm(p.relating),sources:old?old.sources:[],author:String(p.author||''),
@@ -671,7 +749,7 @@ td{border-top-color:#eee8da}
   /* one queued change per thing: a newer save of the same thing replaces the older one */
   function qkey(fn,a){
     if(fn==='saveReading')return 'sr:'+a[0].id;if(fn==='saveReadingSources')return 'ss:'+a[0];if(fn==='saveReadingList')return 'sl:'+a[0];
-    if(fn==='setTarget')return 'tg:'+a[0];if(fn==='setFlag')return 'fl:'+a[0]+a[1];if(fn==='saveStaff')return 'staff';if(fn==='saveSettings')return 'set';return null}
+    if(fn==='setTarget')return 'tg:'+a[0];if(fn==='setFlag')return 'fl:'+a[0]+a[1];if(fn==='saveNote')return 'sn:'+a[0].id;if(fn==='saveNoteFolders')return 'nf';if(fn==='saveStaff')return 'staff';if(fn==='saveSettings')return 'set';return null}
 
   /* ---------- the queue ---------- */
   function flush(){
@@ -688,7 +766,7 @@ td{border-top-color:#eee8da}
   }
   function reload(){            // after a backlog was sent: show what the Sheet now holds
     try{window.load()}catch(e){}
-    try{if(window.VIEW==='read')window.loadReading()}catch(e){}
+    try{if(window.VIEW==='read')window.loadReading();if(window.VIEW==='notes')window.loadNotes()}catch(e){}
   }
   function write(fn,args,ok,fail){
     if(!cfg.url||!cfg.key){busyOff();openConn();return}
@@ -703,7 +781,7 @@ td{border-top-color:#eee8da}
   }
   function read(fn,ok,fail){
     if(!cfg.url||!cfg.key){busyOff();openConn();return}
-    var key=fn==='getData'?'data':'reading';
+    var key=fn==='getData'?'data':fn==='getNotesAll'?'notes':'reading';
     function local(){
       if(!cache[key]){busyOff();fail(new Error('No saved data on this device yet. Connect to the internet once to download it.'));return}
       ok(key==='data'?viewData():clone(cache[key]));
@@ -715,7 +793,7 @@ td{border-top-color:#eee8da}
     });
   }
   var API={};
-  ['getData','getReadingAll'].forEach(function(f){API[f]=function(ok,fail){read(f,ok,fail)}});
+  ['getData','getReadingAll','getNotesAll'].forEach(function(f){API[f]=function(ok,fail){read(f,ok,fail)}});
   Object.keys(Local).forEach(function(f){API[f]=function(ok,fail,args){write(f,args,ok,fail)}});
   function Runner(ok,fail){
     var r={withSuccessHandler:function(f){return Runner(f,fail)},withFailureHandler:function(f){return Runner(ok,f)}};
@@ -762,7 +840,7 @@ td{border-top-color:#eee8da}
   }
   function build(){
     var st=document.createElement('style');st.textContent=
-      '.syncchip{display:inline-flex;align-items:center;gap:7px;border-radius:999px!important;font-size:12px!important;padding:5px 12px!important;white-space:nowrap}'+
+      '.syncchip{color:#f3ead2!important;display:inline-flex;align-items:center;gap:7px;border-radius:999px!important;font-size:12px!important;padding:5px 12px!important;white-space:nowrap}'+
       '.syncchip::before{content:"";width:8px;height:8px;border-radius:50%;background:#7b8190}'+
       '.syncchip.ok::before{background:#3fbf7f}.syncchip.off::before{background:#e0a526}.syncchip.bad::before{background:#e5605a}.syncchip.sync::before{background:#6aa7ff}';
     document.head.appendChild(st);
@@ -777,7 +855,7 @@ td{border-top-color:#eee8da}
       '<div class="foot"><button id="connNow">Sync now</button><button id="connX">Close</button><button class="pri" id="connOk">Save and connect</button></div></div>';
     document.body.appendChild(modal);
     document.getElementById('connX').onclick=closeConn;document.getElementById('connOk').onclick=saveConn;
-    document.getElementById('connNow').onclick=function(){closeConn();lastErr=null;flush().then(function(){try{window.load()}catch(e){}try{if(window.VIEW==='read')window.loadReading()}catch(e){}})};
+    document.getElementById('connNow').onclick=function(){closeConn();lastErr=null;flush().then(function(){try{window.load()}catch(e){}try{if(window.VIEW==='read')window.loadReading();if(window.VIEW==='notes')window.loadNotes()}catch(e){}})};
     setState();if(!cfg.url||!cfg.key)openConn();
   }
   window.addEventListener('online',function(){lastErr=null;setState();flush()});
@@ -1009,30 +1087,33 @@ function setTarget(id,val){
 
 /* ---- view switch ---- */
 var LASTTODO='list';          // remembers which to-do view (list / calendar / archive) you were on
-function setView(v){if(v!=='read')LASTTODO=v;VIEW=v;applyView();paint()}
-function setSection(s){setView(s==='read'?'read':LASTTODO)}
-function refresh(){if(VIEW==='read')loadReading();else load()}
+function setView(v){if(v!=='read'&&v!=='notes')LASTTODO=v;VIEW=v;applyView();paint()}
+function setSection(s){setView(s==='read'?'read':s==='notes'?'notes':LASTTODO)}
+function refresh(){if(VIEW==='read')loadReading();else if(VIEW==='notes')loadNotes();else load()}
 function applyView(){
-  var cal=VIEW==='cal',arch=VIEW==='arch',list=VIEW==='list',read=VIEW==='read';
+  var cal=VIEW==='cal',arch=VIEW==='arch',list=VIEW==='list',read=VIEW==='read',notes=VIEW==='notes',off=read||notes;
   $('listWrap').style.display=list?'':'none';
   $('calWrap').style.display=cal?'':'none';
   $('archWrap').style.display=arch?'':'none';
   $('readWrap').style.display=read?'':'none';
+  $('notesWrap').style.display=notes?'':'none';
   $('tabs').style.display=list?'':'none';
   // the to-do counts, banner and filters do not apply to the Reading list
-  $('statsRow').style.display=read?'none':'';
-  $('barRow').style.display=read?'none':'';
-  if(read)$('banner').style.display='none';else remind();
+  $('statsRow').style.display=off?'none':'';
+  $('barRow').style.display=off?'none':'';
+  if(off)$('banner').style.display='none';else remind();
   $('vList').className=list?'on':'';
   $('vCal').className=cal?'on':'';
   $('vArch').className=arch?'on':'';
-  $('viewsRow').style.display=read?'none':'';          // List / Calendar / Archive belong to the To-do section only
-  $('hTodo').style.display=read?'none':'';
-  $('pgTitle').textContent=read?'Reading list':'To-do list';
-  $('btnNew').style.display=read?'none':'';             // to-do header buttons
-  $('sTodo').className=read?'':'on';                   // left-hand section tabs
+  $('viewsRow').style.display=off?'none':'';          // List / Calendar / Archive belong to the To-do section only
+  $('hTodo').style.display=off?'none':'';
+  $('pgTitle').textContent=read?'Reading list':notes?'Notes':'To-do list';
+  $('btnNew').style.display=off?'none':'';             // to-do header buttons
+  $('sTodo').className=off?'':'on';                   // left-hand section tabs
   $('sRead').className=read?'on':'';
+  $('sNotes').className=notes?'on':'';
   if(read)loadReading();
+  if(notes)loadNotes();
   if(cal&&!CAL){var p=D.today.split('-');CAL={y:+p[0],m:+p[1]-1};CALSEL=D.today}
 }
 
@@ -1105,6 +1186,120 @@ function renderDay(map){
       '<button class="sm ib" title="Edit" aria-label="Edit" onclick="openTask(\''+t.id+'\')">'+ic('edit')+'</button></div>';
   });
   $('dayList').innerHTML=h;
+}
+
+/* ---- NOTES ---- */
+var N=[],NF=[],NSEL='__all',NE=null,NF_CB=null,NF_MODE='new',NF_OLD='',NF_PREV='';
+function nowStr(){try{return new Date().toLocaleString('sv-SE',{timeZone:'Asia/Kolkata'}).slice(0,16)}catch(e){var d=new Date(),z=function(x){return (x<10?'0':'')+x};return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate())+' '+z(d.getHours())+':'+z(d.getMinutes())}}
+function nFix(){NF=NF.slice();N.forEach(function(n){if(n.folder&&NF.indexOf(n.folder)<0)NF.push(n.folder)});if(NSEL!=='__all'&&NSEL!=='__none'&&NF.indexOf(NSEL)<0)NSEL='__all'}
+function loadNotes(){
+  busy(true);
+  google.script.run.withSuccessHandler(function(d){busy(false);N=d.notes||[];NF=d.folders||[];nFix();renderNotes()}).withFailureHandler(fail).getNotesAll();
+}
+function nSrv(n){google.script.run.withFailureHandler(function(e){fail(e);loadNotes()}).saveNote(n)}
+function nFind(id){return N.filter(function(x){return x.id===id})[0]}
+function nCount(f){return N.filter(function(n){return f==='__all'?true:f==='__none'?!n.folder:n.folder===f}).length}
+function nSelect(k){NSEL=k==='__all'||k==='__none'?k:NF[+k];renderNotes()}
+function renderFolders(){
+  var h='<button class="nf'+(NSEL==='__all'?' on':'')+'" onclick="nSelect(\'__all\')">'+ic('note')+'<span class="nm">All notes</span><i>'+nCount('__all')+'</i></button>'+
+        '<button class="nf'+(NSEL==='__none'?' on':'')+'" onclick="nSelect(\'__none\')">'+ic('folder')+'<span class="nm">Unfiled</span><i>'+nCount('__none')+'</i></button>';
+  if(NF.length)h+='<div class="nfsep"></div>';
+  NF.forEach(function(f,i){h+='<button class="nf'+(NSEL===f?' on':'')+'" onclick="nSelect('+i+')" title="'+esc(f)+'">'+ic('folder')+'<span class="nm">'+esc(f)+'</span><i>'+nCount(f)+'</i></button>'});
+  h+='<button class="nfadd" onclick="nfOpen(\'new\')">'+ic('plus')+'New folder</button>';
+  $('nFolders').innerHTML=h;
+}
+function nCard(n,showFolder){
+  var body=(n.body||'').slice(0,400);
+  return '<div class="ncard'+(n.pinned?' pinned':'')+'" tabindex="0" role="button" onclick="noteOpen(\''+n.id+'\')" onkeydown="if(event.key===\'Enter\')noteOpen(\''+n.id+'\')">'+
+    '<button class="npin'+(n.pinned?' on':'')+'" title="'+(n.pinned?'Unpin':'Pin to top')+'" aria-label="'+(n.pinned?'Unpin':'Pin to top')+'" onclick="event.stopPropagation();notePin(\''+n.id+'\')">'+ic('pin')+'</button>'+
+    '<h4>'+esc(n.title||'Untitled')+'</h4><p>'+esc(body)+'</p>'+
+    '<div class="nmeta">'+(showFolder&&n.folder?'<span class="nchip">'+esc(n.folder)+'</span>':'')+'<span>'+esc((n.updated||'').slice(0,10).split('-').reverse().join('-'))+'</span></div></div>';
+}
+function nCmp(a,b){return (b.updated||'').localeCompare(a.updated||'')||(b.id>a.id?1:-1)}
+function renderNotes(){
+  renderFolders();
+  var q=($('nQ').value||'').trim().toLowerCase();
+  var L=N.filter(function(n){
+    if(NSEL==='__none'&&n.folder)return false;
+    if(NSEL!=='__all'&&NSEL!=='__none'&&n.folder!==NSEL)return false;
+    return !q||(n.title+' '+n.body+' '+n.folder).toLowerCase().indexOf(q)>=0;
+  });
+  var pin=L.filter(function(n){return n.pinned}).sort(nCmp),rest=L.filter(function(n){return !n.pinned}).sort(nCmp);
+  var name=NSEL==='__all'?'All notes':NSEL==='__none'?'Unfiled':NSEL,user=NSEL!=='__all'&&NSEL!=='__none';
+  $('nHead').innerHTML='<h3>'+esc(name)+'</h3><small>'+L.length+' note'+(L.length===1?'':'s')+(q?' found':'')+'</small>'+
+    (user?'<button class="sm" onclick="nfOpen(\'rename\')">'+ic('edit')+' Rename</button><button class="sm danger" onclick="nfDelete()">'+ic('x')+' Delete folder</button>':'');
+  var h='';
+  if(!L.length)h='<div class="empty panel">'+(q?'No notes match your search.':'No notes here yet. Choose New note to add one.')+'</div>';
+  else{
+    var all=NSEL==='__all';
+    if(pin.length)h+='<div class="nlab">'+ic('pin')+'Pinned</div><div class="ngrid">'+pin.map(function(n){return nCard(n,all)}).join('')+'</div>';
+    if(rest.length)h+=(pin.length?'<div class="nlab">Other notes</div>':'')+'<div class="ngrid">'+rest.map(function(n){return nCard(n,all)}).join('')+'</div>';
+  }
+  $('nList').innerHTML=h;
+}
+function nFillFolders(sel){
+  var h='<option value="">Unfiled</option>'+NF.map(function(f){return '<option value="'+esc(f)+'">'+esc(f)+'</option>'}).join('')+'<option value="__new">+ New folder&hellip;</option>';
+  $('nFolder').innerHTML=h;$('nFolder').value=sel||'';NF_PREV=$('nFolder').value;
+}
+function noteOpen(id){
+  var n=id?nFind(id):null;NE=n?n.id:null;
+  $('nH').textContent=n?'Edit note':'New note';
+  $('nTitle').value=n?n.title:'';$('nBody').value=n?n.body:'';$('nPin').checked=n?!!n.pinned:false;
+  nFillFolders(n?n.folder:(NSEL!=='__all'&&NSEL!=='__none'?NSEL:''));
+  $('nDel').style.display=n?'':'none';
+  $('mNote').classList.add('on');
+  setTimeout(function(){$(n?'nBody':'nTitle').focus()},50);
+}
+function nFolderPick(){
+  if($('nFolder').value!=='__new'){NF_PREV=$('nFolder').value;return}
+  NF_CB=function(nm){nFillFolders(nm)};
+  $('nFolder').value=NF_PREV;nfOpen('new');
+}
+function noteSave(){
+  var title=$('nTitle').value.trim(),body=$('nBody').value;
+  if(!title&&!body.trim()){alert('Write a title or some text for the note.');return}
+  var old=NE?nFind(NE):null,t=nowStr();
+  var n={id:old?old.id:'N'+Date.now(),title:title,body:body,folder:$('nFolder').value,pinned:$('nPin').checked,created:old?old.created:t,updated:t};
+  if(old)N[N.indexOf(old)]=n;else N.push(n);
+  nFix();closeM('mNote');renderNotes();nSrv(n);toast('Note saved');
+}
+function noteDel(){
+  var n=NE&&nFind(NE);if(!n)return;
+  if(!confirm('Delete this note permanently?'))return;
+  N.splice(N.indexOf(n),1);closeM('mNote');renderNotes();
+  google.script.run.withFailureHandler(function(e){fail(e);loadNotes()}).deleteNote(n.id);
+}
+function notePin(id){var n=nFind(id);if(!n)return;n.pinned=!n.pinned;renderNotes();nSrv(n);toast(n.pinned?'Pinned to top':'Unpinned')}
+/* folders */
+function nfOpen(mode){
+  NF_MODE=mode;NF_OLD=mode==='rename'?NSEL:'';
+  $('nfH').textContent=mode==='rename'?'Rename folder':'New folder';
+  $('nfName').value=mode==='rename'?NSEL:'';$('nfMsg').textContent='';
+  $('mFolder').classList.add('on');setTimeout(function(){$('nfName').focus()},50);
+}
+function nfCancel(){NF_CB=null;closeM('mFolder')}
+function nfSave(){
+  var nm=$('nfName').value.replace(/\s+/g,' ').trim().slice(0,80),m=$('nfMsg');
+  if(!nm){m.textContent='Enter a folder name.';return}
+  if(NF.some(function(f){return f.toLowerCase()===nm.toLowerCase()&&f!==NF_OLD})){m.textContent='A folder named "'+nm+'" already exists.';return}
+  var cb=NF_CB;NF_CB=null;
+  if(NF_MODE==='rename'){
+    if(nm!==NF_OLD){
+      NF[NF.indexOf(NF_OLD)]=nm;N.forEach(function(n){if(n.folder===NF_OLD)n.folder=nm});
+      google.script.run.withFailureHandler(function(e){fail(e);loadNotes()}).renameNoteFolder(NF_OLD,nm);
+      NSEL=nm;
+    }
+  }else{
+    NF.push(nm);google.script.run.withFailureHandler(function(e){fail(e);loadNotes()}).saveNoteFolders(NF);
+    if(!cb)NSEL=nm;
+  }
+  closeM('mFolder');renderNotes();if(cb)cb(nm);
+}
+function nfDelete(){
+  var f=NSEL,c=nCount(f);
+  if(!confirm('Delete the folder "'+f+'"?'+(c?'\n\nIts '+c+' note(s) are kept and move to Unfiled.':'')))return;
+  NF.splice(NF.indexOf(f),1);N.forEach(function(n){if(n.folder===f)n.folder=''});NSEL='__all';renderNotes();
+  google.script.run.withFailureHandler(function(e){fail(e);loadNotes()}).deleteNoteFolder(f);
 }
 
 /* ---- WhatsApp lists ---- */
