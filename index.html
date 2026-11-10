@@ -1446,6 +1446,15 @@ function rdSet(id,field,val){
   var r=rdFind(id);if(!r||r[field]===val)return;
   r[field]=val;rdSave(r);
   if(RD_REDRAW[field])renderReading();
+  else if(field==='target'||field===RSORT.k)rdResortSoon();     // a changed date / sorted column moves the row (and the this-month highlight) once you pause
+}
+/* Redraw shortly after a date or sorted-column edit. It waits while you are typing in another cell, so focus is never taken away. */
+var RD_T=null;
+function rdResortSoon(){clearTimeout(RD_T);RD_T=setTimeout(rdResortNow,900)}
+function rdResortNow(){
+  var a=document.activeElement,t=a&&a.tagName;
+  if(a&&a.closest&&a.closest('#rdBody')&&a.type!=='date'&&(t==='INPUT'||t==='SELECT')){RD_T=setTimeout(rdResortNow,900);return}
+  RD_T=null;renderReading();
 }
 /* dropdown in a row; the last option "+ Add new..." opens the Manage lists pop-up */
 function rdPick(id,field,sel){
