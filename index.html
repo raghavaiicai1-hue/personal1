@@ -356,6 +356,20 @@ td{border-top-color:#eee8da}
 .nlab svg.i{width:13px;height:13px}
 @media(max-width:700px){.nlay{display:block}.nfold{display:flex;overflow-x:auto;position:static;margin-bottom:12px;gap:4px}.nfold button.nf,.nfold button.nfadd{width:auto;white-space:nowrap;margin:0}.nf.on::before{display:none}.nfsep{display:none}}
 
+/* ===== reading list: sortable headings + this-month highlight ===== */
+#rdHead th.sortable{cursor:pointer;user-select:none;white-space:nowrap}
+#rdHead th.sortable:hover{background:#18305a}
+#rdHead th.sortable:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+#rdHead .sa{display:inline-block;width:14px;margin-left:5px;font-weight:400;color:var(--gold);opacity:.55}
+#rdHead .sa::before{content:"\2195"}
+#rdHead th[aria-sort=ascending] .sa,#rdHead th[aria-sort=descending] .sa{opacity:1}
+#rdHead th[aria-sort=ascending] .sa::before{content:"\2191"}
+#rdHead th[aria-sort=descending] .sa::before{content:"\2193"}
+#rdTable tbody tr.rd-month td{background:#fbf0c9}
+#rdTable tbody tr.rd-month td:first-child{box-shadow:inset 4px 0 0 var(--gold)}
+#rdTable tbody tr.rd-month:hover td{background:#f8e8b0}
+.rdleg{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#5a5f6b}
+.rdleg i{width:14px;height:14px;border-radius:3px;background:#fbf0c9;border:1px solid #e3cd7f;box-shadow:inset 3px 0 0 var(--gold)}
 /* ---- printing: a numbered checklist, built into #printArea and the only thing printed ---- */
 #printArea{display:none;font:12px/1.35 Arial,"Segoe UI",sans-serif;color:#000}
 #printArea h1{font-size:19px;margin:0 0 3px}
@@ -487,6 +501,7 @@ td{border-top-color:#eee8da}
   <div id="readWrap" style="display:none">
     <div class="rdbar">
             <span id="rdCount" style="color:var(--mute);font-size:12px"></span>
+            <span class="rdleg" id="rdLeg" title="Items not yet completed whose target date falls in the current month"><i></i><span id="rdLegT"></span></span>
       <button class="sm" onclick="rdClear()" title="Reset every column filter">Clear all filters</button>
       <button style="margin-left:auto" onclick="openPrint('read')" title="Print a numbered checklist"><svg class="i"><use href="#i-print"/></svg>Print</button>
       <button onclick="openRL(RL_TAB)" title="Add or edit Categories and Relating-to items"><svg class="i"><use href="#i-gear"/></svg>Manage lists</button>
@@ -496,7 +511,7 @@ td{border-top-color:#eee8da}
       <table id="rdTable">
         <colgroup><col style="width:18%"><col style="width:10%"><col style="width:11%"><col style="width:11%"><col style="width:10%"><col style="width:8%"><col style="width:15%"><col style="width:13%"><col style="width:4%"></colgroup>
         <thead>
-          <tr><th>To read</th><th>Category</th><th>Relating to</th><th>Sources</th><th>Author</th><th>Read/Watch</th><th>Target date</th><th>Status</th><th></th></tr>
+          <tr id="rdHead"><th class="sortable" data-k="title" tabindex="0" role="columnheader" aria-sort="none" onclick="rdSort('title')" onkeydown="if(event.key==='Enter')rdSort('title')" title="Click to sort"><span>To read</span><b class="sa"></b></th><th class="sortable" data-k="category" tabindex="0" role="columnheader" aria-sort="none" onclick="rdSort('category')" onkeydown="if(event.key==='Enter')rdSort('category')" title="Click to sort"><span>Category</span><b class="sa"></b></th><th class="sortable" data-k="relating" tabindex="0" role="columnheader" aria-sort="none" onclick="rdSort('relating')" onkeydown="if(event.key==='Enter')rdSort('relating')" title="Click to sort"><span>Relating to</span><b class="sa"></b></th><th class="sortable" data-k="sources" tabindex="0" role="columnheader" aria-sort="none" onclick="rdSort('sources')" onkeydown="if(event.key==='Enter')rdSort('sources')" title="Click to sort"><span>Sources</span><b class="sa"></b></th><th class="sortable" data-k="author" tabindex="0" role="columnheader" aria-sort="none" onclick="rdSort('author')" onkeydown="if(event.key==='Enter')rdSort('author')" title="Click to sort"><span>Author</span><b class="sa"></b></th><th class="sortable" data-k="kind" tabindex="0" role="columnheader" aria-sort="none" onclick="rdSort('kind')" onkeydown="if(event.key==='Enter')rdSort('kind')" title="Click to sort"><span>Read/Watch</span><b class="sa"></b></th><th class="sortable" data-k="target" tabindex="0" role="columnheader" aria-sort="none" onclick="rdSort('target')" onkeydown="if(event.key==='Enter')rdSort('target')" title="Click to sort"><span>Target date</span><b class="sa"></b></th><th class="sortable" data-k="status" tabindex="0" role="columnheader" aria-sort="none" onclick="rdSort('status')" onkeydown="if(event.key==='Enter')rdSort('status')" title="Click to sort"><span>Status</span><b class="sa"></b></th><th></th></tr>
           <tr class="rdfil">
             <th><input type="text" id="rf_title" placeholder="Filter…" oninput="renderReading()"></th>
             <th><select id="rf_cat" onchange="renderReading()"></select></th>
@@ -1453,9 +1468,33 @@ function regOpts(list,cur){
   if(cur&&names.indexOf(cur)<0)h+='<option value="'+esc(cur)+'" selected>'+esc(cur)+'</option>';   // older value no longer in the list
   return h+'<option value="__new">+ Add new…</option>';
 }
+var RSORT={k:'',dir:1};
+function rdMonth(){return nowStr().slice(0,7)}
+function rdDueMonth(r){return r.status!=='Completed'&&!!r.target&&r.target.slice(0,7)===rdMonth()}
+function rdKey(r,k){
+  if(k==='sources'){var s=r.sources||[];return s.length?s[0].name.toLowerCase():''}
+  return String(r[k]==null?'':r[k]).toLowerCase();
+}
+function rdSorted(a){
+  if(!RSORT.k)return a;
+  var k=RSORT.k,d=RSORT.dir,pos={};R.forEach(function(r,i){pos[r.id]=i});
+  return a.slice().sort(function(x,y){
+    var p=rdKey(x,k),q=rdKey(y,k);
+    if(k==='target'){if(!p&&q)return 1;if(p&&!q)return -1}      // blank dates always last
+    else if(!p&&q)return 1;else if(p&&!q)return -1;               // blanks last for every column
+    var c=p<q?-1:p>q?1:0;
+    if(k==='sources'&&c===0)c=(x.sources||[]).length-(y.sources||[]).length;
+    return c?c*d:pos[x.id]-pos[y.id];
+  });
+}
+function rdVisible(){var f=rdFilters();return rdSorted(R.filter(function(r){return rdMatch(r,f)}))}
+function rdSort(k){
+  if(RSORT.k!==k)RSORT={k:k,dir:1};else if(RSORT.dir===1)RSORT.dir=-1;else RSORT={k:'',dir:1};   // ascending, descending, back to entry order
+  renderReading();
+}
 function renderReading(){
   rfOptions('rf_cat','category','category');rfOptions('rf_rel','relating','relating');
-  var f=rdFilters(),a=R.filter(function(r){return rdMatch(r,f)});
+  var f=rdFilters(),a=rdVisible();
   $('rdCount').textContent=R.length?(rdActive(f)?a.length+' of '+R.length:R.length)+' item(s)':'';
   var dd=function(r,list,field){return '<select onchange="rdPick(\''+r.id+'\',\''+field+'\',this)">'+regOpts(list,r[field])+'</select>'};
   var txt=function(r,field,ph,withId){return '<input type="text" '+(withId?'id="rd_'+field+'_'+r.id+'" ':'')+'value="'+esc(r[field])+'" placeholder="'+ph+'" onchange="rdSet(\''+r.id+'\',\''+field+'\',this.value)">'};
@@ -1469,7 +1508,7 @@ function renderReading(){
   var h='';
   if(!a.length)h='<tr><td colspan="9" class="empty">'+(R.length?'No items match the filters.':'Nothing yet. Click “+ Add row” to start your reading list.')+'</td></tr>';
   a.forEach(function(r){
-    h+='<tr class="rd-'+r.status.toLowerCase()+'">'+
+    h+='<tr class="rd-'+r.status.toLowerCase()+(rdDueMonth(r)?' rd-month':'')+'">'+
       '<td>'+txt(r,'title','Book / article / video…',true)+'</td>'+
       '<td>'+dd(r,'category','category')+'</td>'+
       '<td>'+dd(r,'relating','relating')+'</td>'+
@@ -1482,6 +1521,11 @@ function renderReading(){
       '<td><button class="sm danger" title="Delete row" aria-label="Delete row" onclick="rdDel(\''+r.id+'\')">'+ic('x')+'</button></td></tr>';
   });
   $('rdBody').innerHTML=h;
+  [].forEach.call(document.querySelectorAll('#rdHead th.sortable'),function(th){
+    var on=th.getAttribute('data-k')===RSORT.k;th.setAttribute('aria-sort',on?(RSORT.dir===1?'ascending':'descending'):'none');
+  });
+  var due=R.filter(rdDueMonth).length,mn=['January','February','March','April','May','June','July','August','September','October','November','December'][+rdMonth().slice(5,7)-1];
+  $('rdLegT').textContent='Due in '+mn+': '+due;$('rdLeg').style.display=R.length?'':'none';
 }
 
 /* ---- SOURCES pop-up: line items of one entry only ---- */
@@ -1594,7 +1638,7 @@ function rlDel(i){
 var PR={kind:'todo'};
 var TAB_NAME={today:'Target today',overdue:'Overdue',week:'Next 7 days',open:'All open'};
 function todoPrintRows(scope){return scope==='all'?sorted(D.tasks.filter(open_)):sorted(filtered())}
-function readPrintRows(scope){var f=rdFilters();return scope==='all'?R.slice():R.filter(function(r){return rdMatch(r,f)})}
+function readPrintRows(scope){return scope==='all'?rdSorted(R.slice()):rdVisible()}
 function todoFilterText(){
   var p=['Tab: '+(TAB_NAME[TAB]||TAB)];
   var ty=$('fType').value,st=$('fStaff').value,im=$('fImp').value,ur=$('fUrg').value,ac=$('fAct').value,q=$('q').value.trim();
