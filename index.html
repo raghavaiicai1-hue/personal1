@@ -370,6 +370,25 @@ td{border-top-color:#eee8da}
 #rdTable tbody tr.rd-month:hover td{background:#cfebe8}
 .rdleg{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#5a5f6b}
 .rdleg i{width:14px;height:14px;border-radius:3px;background:#dcf1ef;border:1px solid #9fd1cf;box-shadow:inset 3px 0 0 var(--gold)}
+/* ===== statutory calendar ===== */
+.sdbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+.scnav{display:flex;align-items:center;gap:10px;margin-bottom:10px}.scnav h2{margin:0;min-width:190px;text-align:center;font-family:'Source Serif 4',Georgia,serif;font-size:22px}
+.scwrap{overflow:auto}.scgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));min-width:640px}
+.scgrid .dh{background:var(--navy,#16303b);color:#fff;font-weight:600;font-size:12.5px;padding:8px;text-align:center}
+.scgrid .dc{min-height:104px;border-top:1px solid var(--line);border-left:1px solid var(--line);padding:4px;cursor:pointer;display:flex;flex-direction:column;gap:3px}
+.scgrid .dc:nth-child(7n+8){border-left:0}
+.scgrid .dc.out{background:#f4f7f8;cursor:default}.scgrid .dc.out .n{color:#b3bcc3}
+.scgrid .dc:hover:not(.out){background:#eef7f6}
+.scgrid .dc.today{background:#e3f4f2}.scgrid .dc.today .n{background:var(--gold,#0f8b8d);color:#fff;border-radius:50%}
+.scgrid .n{font-size:12.5px;font-weight:600;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;color:#4a525e}
+.scgrid .ev{display:block;text-align:left;font:inherit;font-size:12px;font-weight:600;line-height:1.25;padding:2px 6px;border-radius:4px;background:#d9efed;color:#0b5f61;border:0;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%}
+.scgrid .ev.past{background:#eceff1;color:#7b8590;text-decoration:line-through}
+.scgrid .ev:hover{filter:brightness(.95)}
+.schd{margin:18px 0 8px;font-size:15px}
+#scList .row{display:flex;gap:14px;align-items:center;padding:9px 14px;border-top:1px solid var(--line)}#scList .row:first-child{border-top:0}
+#scList .row .d{width:96px;font-weight:600}#scList .row .t{flex:1;min-width:0}#scList .row small{display:block;color:var(--mute)}#scList .row.past{color:var(--mute)}
+@media(max-width:700px){.scgrid .dc{min-height:74px}.scgrid .ev{font-size:10.5px;padding:1px 3px}}
+
 /* ---- printing: a numbered checklist, built into #printArea and the only thing printed ---- */
 #printArea{display:none;font:12px/1.35 Arial,"Segoe UI",sans-serif;color:#000}
 #printArea h1{font-size:19px;margin:0 0 3px}
@@ -418,6 +437,7 @@ td{border-top-color:#eee8da}
 <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
 <symbol id="i-pin" viewBox="0 0 24 24"><path d="M9 3.5h6l-1 6 3 3.5H7l3-3.5z"/><path d="M12 13v7.5"/></symbol>
 <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5H9l2 2.2h8.5A1.5 1.5 0 0 1 21 8.7v9.8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z"/></symbol>
+<symbol id="i-file" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/></symbol>
 </defs></svg>
 <div id="busy"></div>
 <header>
@@ -435,6 +455,7 @@ td{border-top-color:#eee8da}
   <button id="sTodo" class="on" onclick="setSection('todo')"><svg class="i"><use href="#i-todo"/></svg>To-do<span class="bd" id="sBadge" title="Overdue + target today"></span></button>
   <button id="sRead" onclick="setSection('read')"><svg class="i"><use href="#i-book"/></svg>Reading list</button>
   <button id="sNotes" onclick="setSection('notes')"><svg class="i"><use href="#i-note"/></svg>Notes</button>
+  <button id="sDues" onclick="setSection('dues')"><svg class="i"><use href="#i-file"/></svg>Statutory dues</button>
 </nav>
 <div class="shell">
 
@@ -542,7 +563,42 @@ td{border-top-color:#eee8da}
       </section>
     </div>
   </div>
+  <div id="duesWrap" style="display:none">
+    <div class="sdbar">
+      <button class="pri" onclick="scMsgOpen()"><svg class="i"><use href="#i-chat"/></svg>Draft WhatsApp message</button>
+      <button onclick="scOpen()"><svg class="i"><use href="#i-plus"/></svg>Add due date</button>
+      <button onclick="scStd()"><svg class="i"><use href="#i-cal"/></svg>Add standard dues for this month</button>
+    </div>
+    <div class="scnav"><button class="sm ib" aria-label="Previous month" onclick="scGo(-1)"><svg class="i"><use href="#i-left"/></svg></button>
+      <h2 id="scTitle"></h2><button class="sm ib" aria-label="Next month" onclick="scGo(1)"><svg class="i"><use href="#i-right"/></svg></button>
+      <button class="sm" onclick="scGo(0)">Today</button></div>
+    <div class="panel scwrap"><div class="scgrid" id="scGrid"></div></div>
+    <h3 class="schd">This month</h3>
+    <div class="panel" id="scList"></div>
+  </div>
 </main>
+<div class="modal" id="mSc"><div class="box" style="max-width:480px">
+  <h2 id="scH">Add due date</h2>
+  <div class="f">
+    <div><label>Date</label><input type="date" id="scDate"></div>
+    <div><label>Title</label><input id="scTitle2" placeholder="e.g. GSTR-3B"></div>
+    <div class="w"><label>Note (optional)</label><textarea id="scNote" style="min-height:70px" placeholder="e.g. extended to 24th for Tamil Nadu"></textarea></div>
+  </div>
+  <div class="foot"><button class="danger" id="scDel" style="margin-right:auto" onclick="scDelete()">Delete</button><button onclick="closeM('mSc')">Cancel</button><button class="pri" onclick="scSave()">Save</button></div>
+</div></div>
+<div class="modal" id="mScAl"><div class="box" style="max-width:520px">
+  <h2>Statutory due dates</h2>
+  <div id="scAlBody"></div>
+  <div class="foot"><button onclick="closeM('mScAl')">Close</button><button onclick="closeM('mScAl');setSection('dues')">Open calendar</button></div>
+</div></div>
+<div class="modal" id="mScm"><div class="box" style="max-width:600px">
+  <h2>Draft WhatsApp message</h2>
+  <div class="f"><div><label>Include due dates</label>
+    <select id="scmWin" onchange="scMsgBuild()"><option value="today">Today only</option><option value="d2">Reminder: due in 2 days</option><option value="month">In the month shown (from today)</option><option value="7">Next 7 days</option><option value="15" selected>Next 15 days</option><option value="30">Next 30 days</option></select></div></div>
+  <label style="margin-top:12px;display:block">Message (you can edit it)</label>
+  <textarea id="scmTxt" style="width:100%;min-height:280px"></textarea>
+  <div class="foot"><button onclick="closeM('mScm')">Close</button><button class="pri" onclick="scCopy()"><svg class="i"><use href="#i-link"/></svg>Copy message</button></div>
+</div></div>
 <div class="modal" id="mNote"><div class="box" style="max-width:680px">
   <h2 id="nH">New note</h2>
   <div class="f">
@@ -672,7 +728,7 @@ td{border-top-color:#eee8da}
   function get(k,d){try{var v=LS.getItem(P+k);return v?JSON.parse(v):d}catch(e){return d}}
   var warned=false;
   function put(k,v){try{LS.setItem(P+k,JSON.stringify(v))}catch(e){if(!warned){warned=true;alert('This browser cannot store the offline copy (private window or storage full). Changes made now may be lost.')}}}
-  var cfg=get('cfg',{url:'',key:''}),cache=get('cache',{data:null,reading:null,notes:null}),queue=get('queue',[]),issues=get('issues',[]),lastSync=get('last',0);
+  var cfg=get('cfg',{url:'',key:''}),cache=get('cache',{data:null,reading:null,notes:null,stat:null}),queue=get('queue',[]),issues=get('issues',[]),lastSync=get('last',0);
   var flushing=false,dirty=false,state='',lastErr=null,connOpen=false;
 
   /* ---------- helpers ---------- */
@@ -731,6 +787,11 @@ td{border-top-color:#eee8da}
       d.staff=names;d.phones=ph;return viewData()},
     saveSettings:function(a){var d=needData();d.settings={email:String(a[0]||''),hour:Number(a[1])||8};return viewData()},
     /* notes */
+    /* statutory calendar */
+    saveStat:function(a){var Z=cache.stat;if(!Z)return true;(Array.isArray(a[0])?a[0]:[a[0]]).forEach(function(p){
+        var title=norm(p.title).slice(0,200);if(!/^\d{4}-\d{2}-\d{2}$/.test(String(p.date||''))||!title)throw new Error('Date and title are required');
+        var row={id:p.id,date:String(p.date),title:title,note:String(p.note||'').slice(0,1000)},i=idx(Z,p.id);if(i>=0)Z[i]=row;else Z.push(row)});return true},
+    deleteStat:function(a){var Z=cache.stat;if(!Z)return true;var i=idx(Z,a[0]);if(i>=0)Z.splice(i,1);return true},
     saveNote:function(a){var N=cache.notes;if(!N)return true;var p=a[0],i=idx(N.notes,p.id),old=i>=0?N.notes[i]:null;
       var row={id:p.id,title:String(p.title||'').slice(0,300),body:String(p.body||'').slice(0,40000),folder:norm(p.folder).slice(0,80),pinned:!!p.pinned,created:old?old.created:(p.created||nowStr()),updated:p.updated||nowStr()};
       if(old)N.notes[i]=row;else N.notes.push(row);
@@ -764,7 +825,7 @@ td{border-top-color:#eee8da}
   /* one queued change per thing: a newer save of the same thing replaces the older one */
   function qkey(fn,a){
     if(fn==='saveReading')return 'sr:'+a[0].id;if(fn==='saveReadingSources')return 'ss:'+a[0];if(fn==='saveReadingList')return 'sl:'+a[0];
-    if(fn==='setTarget')return 'tg:'+a[0];if(fn==='setFlag')return 'fl:'+a[0]+a[1];if(fn==='saveNote')return 'sn:'+a[0].id;if(fn==='saveNoteFolders')return 'nf';if(fn==='saveStaff')return 'staff';if(fn==='saveSettings')return 'set';return null}
+    if(fn==='setTarget')return 'tg:'+a[0];if(fn==='setFlag')return 'fl:'+a[0]+a[1];if(fn==='saveNote')return 'sn:'+a[0].id;if(fn==='saveStat')return a[0].length===1?'ss:'+a[0][0].id:null;if(fn==='saveNoteFolders')return 'nf';if(fn==='saveStaff')return 'staff';if(fn==='saveSettings')return 'set';return null}
 
   /* ---------- the queue ---------- */
   function flush(){
@@ -781,7 +842,7 @@ td{border-top-color:#eee8da}
   }
   function reload(){            // after a backlog was sent: show what the Sheet now holds
     try{window.load()}catch(e){}
-    try{if(window.VIEW==='read')window.loadReading();if(window.VIEW==='notes')window.loadNotes()}catch(e){}
+    try{if(window.VIEW==='read')window.loadReading();if(window.VIEW==='notes')window.loadNotes();if(window.VIEW==='dues')window.loadDues()}catch(e){}
   }
   function write(fn,args,ok,fail){
     if(!cfg.url||!cfg.key){busyOff();openConn();return}
@@ -796,7 +857,7 @@ td{border-top-color:#eee8da}
   }
   function read(fn,ok,fail){
     if(!cfg.url||!cfg.key){busyOff();openConn();return}
-    var key=fn==='getData'?'data':fn==='getNotesAll'?'notes':'reading';
+    var key=fn==='getData'?'data':fn==='getNotesAll'?'notes':fn==='getStatAll'?'stat':'reading';
     function local(){
       if(!cache[key]){busyOff();fail(new Error('No saved data on this device yet. Connect to the internet once to download it.'));return}
       ok(key==='data'?viewData():clone(cache[key]));
@@ -808,7 +869,7 @@ td{border-top-color:#eee8da}
     });
   }
   var API={};
-  ['getData','getReadingAll','getNotesAll'].forEach(function(f){API[f]=function(ok,fail){read(f,ok,fail)}});
+  ['getData','getReadingAll','getNotesAll','getStatAll'].forEach(function(f){API[f]=function(ok,fail){read(f,ok,fail)}});
   Object.keys(Local).forEach(function(f){API[f]=function(ok,fail,args){write(f,args,ok,fail)}});
   function Runner(ok,fail){
     var r={withSuccessHandler:function(f){return Runner(f,fail)},withFailureHandler:function(f){return Runner(ok,f)}};
@@ -870,7 +931,7 @@ td{border-top-color:#eee8da}
       '<div class="foot"><button id="connNow">Sync now</button><button id="connX">Close</button><button class="pri" id="connOk">Save and connect</button></div></div>';
     document.body.appendChild(modal);
     document.getElementById('connX').onclick=closeConn;document.getElementById('connOk').onclick=saveConn;
-    document.getElementById('connNow').onclick=function(){closeConn();lastErr=null;flush().then(function(){try{window.load()}catch(e){}try{if(window.VIEW==='read')window.loadReading();if(window.VIEW==='notes')window.loadNotes()}catch(e){}})};
+    document.getElementById('connNow').onclick=function(){closeConn();lastErr=null;flush().then(function(){try{window.load()}catch(e){}try{if(window.VIEW==='read')window.loadReading();if(window.VIEW==='notes')window.loadNotes();if(window.VIEW==='dues')window.loadDues()}catch(e){}})};
     setState();if(!cfg.url||!cfg.key)openConn();
   }
   window.addEventListener('online',function(){lastErr=null;setState();flush()});
@@ -1102,16 +1163,17 @@ function setTarget(id,val){
 
 /* ---- view switch ---- */
 var LASTTODO='list';          // remembers which to-do view (list / calendar / archive) you were on
-function setView(v){if(v!=='read'&&v!=='notes')LASTTODO=v;VIEW=v;applyView();paint()}
-function setSection(s){setView(s==='read'?'read':s==='notes'?'notes':LASTTODO)}
-function refresh(){if(VIEW==='read')loadReading();else if(VIEW==='notes')loadNotes();else load()}
+function setView(v){if(v!=='read'&&v!=='notes'&&v!=='dues')LASTTODO=v;VIEW=v;applyView();paint()}
+function setSection(s){setView(s==='read'?'read':s==='notes'?'notes':s==='dues'?'dues':LASTTODO)}
+function refresh(){if(VIEW==='read')loadReading();else if(VIEW==='notes')loadNotes();else if(VIEW==='dues')loadDues();else load()}
 function applyView(){
-  var cal=VIEW==='cal',arch=VIEW==='arch',list=VIEW==='list',read=VIEW==='read',notes=VIEW==='notes',off=read||notes;
+  var cal=VIEW==='cal',arch=VIEW==='arch',list=VIEW==='list',read=VIEW==='read',notes=VIEW==='notes',dues=VIEW==='dues',off=read||notes||dues;
   $('listWrap').style.display=list?'':'none';
   $('calWrap').style.display=cal?'':'none';
   $('archWrap').style.display=arch?'':'none';
   $('readWrap').style.display=read?'':'none';
   $('notesWrap').style.display=notes?'':'none';
+  $('duesWrap').style.display=dues?'':'none';
   $('tabs').style.display=list?'':'none';
   // the to-do counts, banner and filters do not apply to the Reading list
   $('statsRow').style.display=off?'none':'';
@@ -1122,13 +1184,15 @@ function applyView(){
   $('vArch').className=arch?'on':'';
   $('viewsRow').style.display=off?'none':'';          // List / Calendar / Archive belong to the To-do section only
   $('hTodo').style.display=off?'none':'';
-  $('pgTitle').textContent=read?'Reading list':notes?'Notes':'To-do list';
+  $('pgTitle').textContent=read?'Reading list':notes?'Notes':dues?'Statutory dues':'To-do list';
   $('btnNew').style.display=off?'none':'';             // to-do header buttons
   $('sTodo').className=off?'':'on';                   // left-hand section tabs
   $('sRead').className=read?'on':'';
   $('sNotes').className=notes?'on':'';
+  $('sDues').className=dues?'on':'';
   if(read)loadReading();
   if(notes)loadNotes();
+  if(dues)loadDues();
   if(cal&&!CAL){var p=D.today.split('-');CAL={y:+p[0],m:+p[1]-1};CALSEL=D.today}
 }
 
@@ -1315,6 +1379,103 @@ function nfDelete(){
   if(!confirm('Delete the folder "'+f+'"?'+(c?'\n\nIts '+c+' note(s) are kept and move to Unfiled.':'')))return;
   NF.splice(NF.indexOf(f),1);N.forEach(function(n){if(n.folder===f)n.folder=''});NSEL='__all';renderNotes();
   google.script.run.withFailureHandler(function(e){fail(e);loadNotes()}).deleteNoteFolder(f);
+}
+
+/* ---- STATUTORY CALENDAR ---- */
+var SC=[],SCY=0,SCM=0,SCE=null,SC_LOADED=false;
+var SC_MON=['January','February','March','April','May','June','July','August','September','October','November','December'];
+var SC_DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+/* Standard dates. Dates change with notifications and extensions: always check before relying on them. */
+var SC_MONTHLY=[['GSTR-1',11],['GSTR-3B',20],['TDS / TCS payment',7],['PF payment',15],['ESI payment',15]];
+var SC_BYMONTH={1:[['TDS return (Q3)',31]],3:[['Advance tax (4th instalment)',15]],5:[['TDS return (Q4)',31]],6:[['Advance tax (1st instalment)',15]],7:[['TDS return (Q1)',31],['Income tax return (non-audit)',31]],9:[['Advance tax (2nd instalment)',15],['Tax audit report',30]],10:[['TDS return (Q2)',31],['Income tax return (audit cases)',31]],12:[['Advance tax (3rd instalment)',15],['GSTR-9 / 9C',31]]};
+function scToday(){return nowStr().slice(0,10)}
+function scPad(n){return (n<10?'0':'')+n}
+function scISO(y,m,d){return y+'-'+scPad(m+1)+'-'+scPad(d)}
+function scFmt(d){return d.split('-').reverse().join('-')}
+function scFind(id){return SC.filter(function(x){return x.id===id})[0]}
+function loadDues(){
+  if(!SCY){var t=scToday().split('-');SCY=+t[0];SCM=+t[1]-1}
+  busy(true);google.script.run.withSuccessHandler(function(d){busy(false);SC=d||[];SC_LOADED=true;scRender()}).withFailureHandler(fail).getStatAll()}
+function scSrv(list){google.script.run.withFailureHandler(function(e){fail(e);loadDues()}).saveStat(list)}
+function scGo(n){if(!n){var t=scToday().split('-');SCY=+t[0];SCM=+t[1]-1}else{SCM+=n;if(SCM<0){SCM=11;SCY--}if(SCM>11){SCM=0;SCY++}}scRender()}
+function scMonthItems(){var pre=SCY+'-'+scPad(SCM+1)+'-';return SC.filter(function(x){return x.date.indexOf(pre)===0}).sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:a.title<b.title?-1:1})}
+function scRender(){
+  $('scTitle').textContent=SC_MON[SCM]+' '+SCY;
+  var first=new Date(SCY,SCM,1).getDay(),dim=new Date(SCY,SCM+1,0).getDate(),pd=new Date(SCY,SCM,0).getDate(),tod=scToday(),h='';
+  SC_DAYS.forEach(function(d){h+='<div class="dh">'+d+'</div>'});
+  var by={};scMonthItems().forEach(function(x){(by[x.date]=by[x.date]||[]).push(x)});
+  var cells=Math.ceil((first+dim)/7)*7;
+  for(var i=0;i<cells;i++){
+    var dn=i-first+1;
+    if(dn<1||dn>dim){h+='<div class="dc out"><span class="n">'+(dn<1?pd+dn:dn-dim)+'</span></div>';continue}
+    var iso=scISO(SCY,SCM,dn),ev=(by[iso]||[]).map(function(x){return '<button class="ev'+(iso<tod?' past':'')+'" title="'+esc(x.title+(x.note?' - '+x.note:''))+'" onclick="event.stopPropagation();scOpen(\''+x.id+'\')">'+esc(x.title)+'</button>'}).join('');
+    h+='<div class="dc'+(iso===tod?' today':'')+'" onclick="scOpen(null,\''+iso+'\')"><span class="n">'+dn+'</span>'+ev+'</div>';
+  }
+  $('scGrid').innerHTML=h;
+  var L=scMonthItems();
+  $('scList').innerHTML=L.length?L.map(function(x){var wd=SC_DAYS[new Date(x.date+'T00:00:00').getDay()];
+    return '<div class="row'+(x.date<tod?' past':'')+'"><span class="d">'+esc(scFmt(x.date).slice(0,5))+' <small>'+wd+'</small></span><span class="t">'+esc(x.title)+(x.note?'<small>'+esc(x.note)+'</small>':'')+'</span><button class="sm ib" aria-label="Edit" onclick="scOpen(\''+x.id+'\')">'+ic('edit')+'</button></div>'}).join(''):
+    '<div class="empty">Nothing listed for this month. Click a date to add one, or choose "Add standard dues for this month".</div>';
+}
+function scOpen(id,date){
+  var x=id?scFind(id):null;SCE=x?x.id:null;
+  $('scH').textContent=x?'Edit due date':'Add due date';
+  $('scDate').value=x?x.date:(date||scISO(SCY,SCM,Math.min(new Date().getDate(),new Date(SCY,SCM+1,0).getDate())));
+  $('scTitle2').value=x?x.title:'';$('scNote').value=x?x.note:'';
+  $('scDel').style.display=x?'':'none';$('mSc').classList.add('on');setTimeout(function(){$('scTitle2').focus()},50);
+}
+function scSave(){
+  var date=$('scDate').value,title=$('scTitle2').value.replace(/\s+/g,' ').trim();
+  if(!date||!title){alert('Enter the date and the title.');return}
+  var x={id:SCE||'S'+Date.now(),date:date,title:title,note:$('scNote').value.trim()};
+  var o=SCE&&scFind(SCE);if(o)SC[SC.indexOf(o)]=x;else SC.push(x);
+  var t=date.split('-');SCY=+t[0];SCM=+t[1]-1;
+  closeM('mSc');scRender();scSrv([x]);toast('Saved');
+}
+function scDelete(){
+  var x=SCE&&scFind(SCE);if(!x||!confirm('Delete "'+x.title+'" on '+scFmt(x.date)+'?'))return;
+  SC.splice(SC.indexOf(x),1);closeM('mSc');scRender();
+  google.script.run.withFailureHandler(function(e){fail(e);loadDues()}).deleteStat(x.id);
+}
+function scStd(){
+  var list=SC_MONTHLY.concat(SC_BYMONTH[SCM+1]||[]),dim=new Date(SCY,SCM+1,0).getDate(),add=[],k=0;
+  list.forEach(function(t){var d=scISO(SCY,SCM,Math.min(t[1],dim));
+    if(SC.some(function(x){return x.date===d&&x.title.toLowerCase()===t[0].toLowerCase()}))return;
+    add.push({id:'S'+(Date.now()+(k++)),date:d,title:t[0],note:''})});
+  if(!add.length){toast('Standard dues for this month are already listed');return}
+  add.forEach(function(x){SC.push(x)});scRender();scSrv(add);
+  toast(add.length+' due date(s) added. Check them against current notifications and extensions.');
+}
+/* WhatsApp draft */
+function scSign(){try{return localStorage.getItem('rtt_dsign')||'CA Rahul'}catch(e){return 'CA Rahul'}}
+function scMsgOpen(){$('mScm').classList.add('on');scMsgBuild()}
+function scAddDays(iso,n){var d=new Date(iso+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)}
+function scMsgOpen(w){$('mScm').classList.add('on');if(w)$('scmWin').value=w;scMsgBuild()}
+function scMsgBuild(){
+  var w=$('scmWin').value,tod=scToday(),from=tod,to,intro;
+  if(w==='today'){to=tod;intro='Statutory due dates falling TODAY ('+scFmt(tod)+'):'}
+  else if(w==='d2'){from=to=scAddDays(tod,2);intro='Advance reminder: the following statutory due dates fall in 2 days, on '+scFmt(to)+' ('+SC_DAYS[new Date(to+'T00:00:00').getDay()]+'):'}
+  else if(w==='month'){var pre=SCY+'-'+scPad(SCM+1)+'-';to=scISO(SCY,SCM,new Date(SCY,SCM+1,0).getDate());if(pre+'01'>from)from=pre+'01';intro='Statutory due dates for '+SC_MON[SCM]+' '+SCY+':'}
+  else{to=scAddDays(tod,+w);intro='Statutory due dates from '+scFmt(from)+' to '+scFmt(to)+':'}
+  var L=SC.filter(function(x){return x.date>=from&&x.date<=to}).sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:0});
+  var body=L.length?L.map(function(x){return '- *'+scFmt(x.date)+'* ('+SC_DAYS[new Date(x.date+'T00:00:00').getDay()]+'): '+x.title+(x.note?' ('+x.note+')':'')}).join('\n'):'(no due dates listed for this period)';
+  $('scmTxt').value='Dear Sir / Madam,\n\n'+intro+'\n\n'+body+'\n\nKindly share the required details and documents at the earliest so that the filings are completed on time.\n\nRegards,\n'+scSign();
+}
+/* Pop-up when the software is opened: dues today and in 2 days */
+function scStartAlert(){
+  try{google.script.run.withSuccessHandler(function(d){
+    SC=d||[];SC_LOADED=true;
+    var tod=scToday(),d2=scAddDays(tod,2),T=SC.filter(function(x){return x.date===tod}),A=SC.filter(function(x){return x.date===d2});
+    if(!T.length&&!A.length)return;
+    function sec(t,l,w){return l.length?'<h3 style="margin:14px 0 6px;font-size:15px">'+t+'</h3>'+l.map(function(x){return '<div style="padding:6px 10px;border-left:4px solid '+(w==='today'?'#c0392b':'#d9a21b')+';background:'+(w==='today'?'#fdf1f0':'#fff9e8')+';margin-bottom:5px;border-radius:0 4px 4px 0"><b>'+esc(x.title)+'</b>'+(x.note?'<small style="display:block;color:var(--mute)">'+esc(x.note)+'</small>':'')+'</div>'}).join('')+'<button class="sm" onclick="closeM(\'mScAl\');scMsgOpen(\''+w+'\')">'+ic('chat')+'Draft WhatsApp message</button>':''}
+    $('scAlBody').innerHTML=sec('Due today ('+scFmt(tod)+')',T,'today')+sec('Due in 2 days ('+scFmt(d2)+')',A,'d2');
+    $('mScAl').classList.add('on');
+  }).withFailureHandler(function(){}).getStatAll()}catch(e){}
+}
+function scCopy(){
+  var ta=$('scmTxt'),m=/Regards,\s*\n([^\n]+)\s*$/.exec(ta.value);if(m){try{localStorage.setItem('rtt_dsign',m[1].trim())}catch(e){}}
+  function fb(){ta.focus();ta.select();try{document.execCommand('copy');toast('Message copied. Paste it in WhatsApp.')}catch(e){toast('Press Ctrl+C to copy')}}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(ta.value).then(function(){toast('Message copied. Paste it in WhatsApp.')},fb)}else fb();
 }
 
 /* ---- WhatsApp lists ---- */
@@ -1784,6 +1945,7 @@ function saveSet(){closeM('mSet');call('saveSettings',$('setMail').value.trim(),
 
 document.addEventListener('keydown',function(e){if(e.key==='Escape')['mTask','mStaff','mSet','mWA','mRL','mSrc','mPrint'].forEach(closeM)});
 load();
+scStartAlert();
 </script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 /* Offline shell for Rahul's To-do Tracker. Keeps the page itself so it opens with no internet.
    Your data is NOT stored here: it lives in the browser storage of this device and in your Google Sheet. */
-const V = 'rtt-v3';
+const V = 'rtt-v4';
 const CORE = ['./', 'index.html', 'manifest.webmanifest', 'icon.svg'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(V).then(c => c.addAll(CORE)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => {
