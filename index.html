@@ -389,6 +389,16 @@ td{border-top-color:#eee8da}
 #scList .row .d{width:96px;font-weight:600}#scList .row .t{flex:1;min-width:0}#scList .row small{display:block;color:var(--mute)}#scList .row.past{color:var(--mute)}
 @media(max-width:700px){.scgrid .dc{min-height:74px}.scgrid .ev{font-size:10.5px;padding:1px 3px}}
 
+/* ===== routine checks ===== */
+#rcTable{width:100%;min-width:760px;border-collapse:collapse}
+#rcBody td{vertical-align:middle}
+#rcBody input[type=checkbox]{width:20px;height:20px;accent-color:var(--gold,#0f8b8d);cursor:pointer}
+#rcBody tr.rc-done td{color:var(--mute)}#rcBody tr.rc-done .rt{text-decoration:line-through}
+#rcBody tr.rc-over td:first-child{box-shadow:inset 4px 0 0 var(--red)}
+#rcBody tr.rc-due td:first-child{box-shadow:inset 4px 0 0 #d9a21b}
+.rcc{display:inline-block;border-radius:4px;padding:1px 8px;font-size:12px;font-weight:600;background:var(--grybg);color:#4a525e}
+.rcc.off{background:#e3edf6;color:#245b8f}.rcc.per{background:#efe6f6;color:#6a3d8a}
+
 /* ---- printing: a numbered checklist, built into #printArea and the only thing printed ---- */
 #printArea{display:none;font:12px/1.35 Arial,"Segoe UI",sans-serif;color:#000}
 #printArea h1{font-size:19px;margin:0 0 3px}
@@ -438,6 +448,7 @@ td{border-top-color:#eee8da}
 <symbol id="i-pin" viewBox="0 0 24 24"><path d="M9 3.5h6l-1 6 3 3.5H7l3-3.5z"/><path d="M12 13v7.5"/></symbol>
 <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5H9l2 2.2h8.5A1.5 1.5 0 0 1 21 8.7v9.8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z"/></symbol>
 <symbol id="i-file" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/></symbol>
+<symbol id="i-routine" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5.3L20 9"/><path d="M20 4v5h-5"/><path d="M20 12a8 8 0 0 1-14 5.3L4 15"/><path d="M4 20v-5h5"/></symbol>
 </defs></svg>
 <div id="busy"></div>
 <header>
@@ -456,6 +467,7 @@ td{border-top-color:#eee8da}
   <button id="sRead" onclick="setSection('read')"><svg class="i"><use href="#i-book"/></svg>Reading list</button>
   <button id="sNotes" onclick="setSection('notes')"><svg class="i"><use href="#i-note"/></svg>Notes</button>
   <button id="sDues" onclick="setSection('dues')"><svg class="i"><use href="#i-file"/></svg>Statutory dues</button>
+  <button id="sRout" onclick="setSection('rout')"><svg class="i"><use href="#i-routine"/></svg>Routine checks</button>
 </nav>
 <div class="shell">
 
@@ -576,7 +588,32 @@ td{border-top-color:#eee8da}
     <h3 class="schd">This month</h3>
     <div class="panel" id="scList"></div>
   </div>
+  <div id="routWrap" style="display:none">
+    <div class="sdbar"><button class="pri" onclick="rcOpen()"><svg class="i"><use href="#i-plus"/></svg>Add check</button></div>
+    <div class="tabs" id="rcTabs"></div>
+    <div class="bar">
+      <input type="search" id="rcQ" placeholder="Search checks&hellip;" oninput="rcRender()">
+      <select id="rcFC" onchange="rcRender()"><option value="">All categories</option><option>Office</option><option>Personal</option></select>
+      <select id="rcFF" onchange="rcRender()"><option value="">All frequencies</option><option>Daily</option><option>Weekly</option><option>Fortnightly</option><option>Monthly</option></select>
+      <select id="rcFW" onchange="rcRender()"></select>
+      <button class="sm" onclick="rcClear()">Clear all filters</button>
+    </div>
+    <div class="panel" style="overflow:auto"><table id="rcTable"><thead><tr><th style="width:44px">Done</th><th>Check</th><th>Frequency</th><th>Category</th><th>Allotted to</th><th>Last done</th><th>Next due</th><th></th></tr></thead><tbody id="rcBody"></tbody></table></div>
+    <datalist id="dlRcW"></datalist>
+  </div>
 </main>
+<div class="modal" id="mRc"><div class="box" style="max-width:560px">
+  <h2 id="rcH">Add check</h2>
+  <div class="f">
+    <div class="w"><label>Check</label><input id="rcText" placeholder="e.g. Verify bank balance with books"></div>
+    <div><label>Frequency</label><select id="rcFreq"><option>Daily</option><option>Weekly</option><option>Fortnightly</option><option>Monthly</option></select></div>
+    <div><label>Category</label><select id="rcCat"><option>Office</option><option>Personal</option></select></div>
+    <div><label>Allotted to</label><input id="rcWho" list="dlRcW" autocomplete="off" placeholder="e.g. Ramesh"></div>
+    <div><label>Next due (optional)</label><input type="date" id="rcNext"></div>
+  </div>
+  <p style="color:var(--mute);margin:8px 0 0">Leave "Next due" empty to show the check as due now. When you tick a check, its next due date is set from the frequency.</p>
+  <div class="foot"><button class="danger" id="rcDel" style="margin-right:auto" onclick="rcDelete()">Delete</button><button onclick="closeM('mRc')">Cancel</button><button class="pri" onclick="rcSave()">Save</button></div>
+</div></div>
 <div class="modal" id="mSc"><div class="box" style="max-width:480px">
   <h2 id="scH">Add due date</h2>
   <div class="f">
@@ -728,7 +765,7 @@ td{border-top-color:#eee8da}
   function get(k,d){try{var v=LS.getItem(P+k);return v?JSON.parse(v):d}catch(e){return d}}
   var warned=false;
   function put(k,v){try{LS.setItem(P+k,JSON.stringify(v))}catch(e){if(!warned){warned=true;alert('This browser cannot store the offline copy (private window or storage full). Changes made now may be lost.')}}}
-  var cfg=get('cfg',{url:'',key:''}),cache=get('cache',{data:null,reading:null,notes:null,stat:null}),queue=get('queue',[]),issues=get('issues',[]),lastSync=get('last',0);
+  var cfg=get('cfg',{url:'',key:''}),cache=get('cache',{data:null,reading:null,notes:null,stat:null,rout:null}),queue=get('queue',[]),issues=get('issues',[]),lastSync=get('last',0);
   var flushing=false,dirty=false,state='',lastErr=null,connOpen=false;
 
   /* ---------- helpers ---------- */
@@ -788,6 +825,11 @@ td{border-top-color:#eee8da}
     saveSettings:function(a){var d=needData();d.settings={email:String(a[0]||''),hour:Number(a[1])||8};return viewData()},
     /* notes */
     /* statutory calendar */
+    /* routine checks */
+    saveRoutine:function(a){var Z=cache.rout;if(!Z)return true;var F=['Daily','Weekly','Fortnightly','Monthly'],C=['Office','Personal'],dt=function(v){v=String(v||'');if(v&&!/^\d{4}-\d{2}-\d{2}$/.test(v))throw new Error('Invalid date');return v};
+      (Array.isArray(a[0])?a[0]:[a[0]]).forEach(function(p){var text=norm(p.text).slice(0,300);if(!text)throw new Error('The check is required');
+        var row={id:p.id,text:text,freq:F.indexOf(p.freq)>=0?p.freq:'Daily',cat:C.indexOf(p.cat)>=0?p.cat:'Office',who:norm(p.who).slice(0,100),last:dt(p.last),next:dt(p.next)},i=idx(Z,p.id);if(i>=0)Z[i]=row;else Z.push(row)});return true},
+    deleteRoutine:function(a){var Z=cache.rout;if(!Z)return true;var i=idx(Z,a[0]);if(i>=0)Z.splice(i,1);return true},
     saveStat:function(a){var Z=cache.stat;if(!Z)return true;(Array.isArray(a[0])?a[0]:[a[0]]).forEach(function(p){
         var title=norm(p.title).slice(0,200);if(!/^\d{4}-\d{2}-\d{2}$/.test(String(p.date||''))||!title)throw new Error('Date and title are required');
         var row={id:p.id,date:String(p.date),title:title,note:String(p.note||'').slice(0,1000)},i=idx(Z,p.id);if(i>=0)Z[i]=row;else Z.push(row)});return true},
@@ -825,7 +867,7 @@ td{border-top-color:#eee8da}
   /* one queued change per thing: a newer save of the same thing replaces the older one */
   function qkey(fn,a){
     if(fn==='saveReading')return 'sr:'+a[0].id;if(fn==='saveReadingSources')return 'ss:'+a[0];if(fn==='saveReadingList')return 'sl:'+a[0];
-    if(fn==='setTarget')return 'tg:'+a[0];if(fn==='setFlag')return 'fl:'+a[0]+a[1];if(fn==='saveNote')return 'sn:'+a[0].id;if(fn==='saveStat')return a[0].length===1?'ss:'+a[0][0].id:null;if(fn==='saveNoteFolders')return 'nf';if(fn==='saveStaff')return 'staff';if(fn==='saveSettings')return 'set';return null}
+    if(fn==='setTarget')return 'tg:'+a[0];if(fn==='setFlag')return 'fl:'+a[0]+a[1];if(fn==='saveNote')return 'sn:'+a[0].id;if(fn==='saveRoutine')return a[0].length===1?'sr:'+a[0][0].id:null;if(fn==='saveStat')return a[0].length===1?'ss:'+a[0][0].id:null;if(fn==='saveNoteFolders')return 'nf';if(fn==='saveStaff')return 'staff';if(fn==='saveSettings')return 'set';return null}
 
   /* ---------- the queue ---------- */
   function flush(){
@@ -842,7 +884,7 @@ td{border-top-color:#eee8da}
   }
   function reload(){            // after a backlog was sent: show what the Sheet now holds
     try{window.load()}catch(e){}
-    try{if(window.VIEW==='read')window.loadReading();if(window.VIEW==='notes')window.loadNotes();if(window.VIEW==='dues')window.loadDues()}catch(e){}
+    try{if(window.VIEW==='read')window.loadReading();if(window.VIEW==='notes')window.loadNotes();if(window.VIEW==='dues')window.loadDues();if(window.VIEW==='rout')window.loadRout()}catch(e){}
   }
   function write(fn,args,ok,fail){
     if(!cfg.url||!cfg.key){busyOff();openConn();return}
@@ -857,7 +899,7 @@ td{border-top-color:#eee8da}
   }
   function read(fn,ok,fail){
     if(!cfg.url||!cfg.key){busyOff();openConn();return}
-    var key=fn==='getData'?'data':fn==='getNotesAll'?'notes':fn==='getStatAll'?'stat':'reading';
+    var key=fn==='getData'?'data':fn==='getNotesAll'?'notes':fn==='getStatAll'?'stat':fn==='getRoutineAll'?'rout':'reading';
     function local(){
       if(!cache[key]){busyOff();fail(new Error('No saved data on this device yet. Connect to the internet once to download it.'));return}
       ok(key==='data'?viewData():clone(cache[key]));
@@ -869,7 +911,7 @@ td{border-top-color:#eee8da}
     });
   }
   var API={};
-  ['getData','getReadingAll','getNotesAll','getStatAll'].forEach(function(f){API[f]=function(ok,fail){read(f,ok,fail)}});
+  ['getData','getReadingAll','getNotesAll','getStatAll','getRoutineAll'].forEach(function(f){API[f]=function(ok,fail){read(f,ok,fail)}});
   Object.keys(Local).forEach(function(f){API[f]=function(ok,fail,args){write(f,args,ok,fail)}});
   function Runner(ok,fail){
     var r={withSuccessHandler:function(f){return Runner(f,fail)},withFailureHandler:function(f){return Runner(ok,f)}};
@@ -931,7 +973,7 @@ td{border-top-color:#eee8da}
       '<div class="foot"><button id="connNow">Sync now</button><button id="connX">Close</button><button class="pri" id="connOk">Save and connect</button></div></div>';
     document.body.appendChild(modal);
     document.getElementById('connX').onclick=closeConn;document.getElementById('connOk').onclick=saveConn;
-    document.getElementById('connNow').onclick=function(){closeConn();lastErr=null;flush().then(function(){try{window.load()}catch(e){}try{if(window.VIEW==='read')window.loadReading();if(window.VIEW==='notes')window.loadNotes();if(window.VIEW==='dues')window.loadDues()}catch(e){}})};
+    document.getElementById('connNow').onclick=function(){closeConn();lastErr=null;flush().then(function(){try{window.load()}catch(e){}try{if(window.VIEW==='read')window.loadReading();if(window.VIEW==='notes')window.loadNotes();if(window.VIEW==='dues')window.loadDues();if(window.VIEW==='rout')window.loadRout()}catch(e){}})};
     setState();if(!cfg.url||!cfg.key)openConn();
   }
   window.addEventListener('online',function(){lastErr=null;setState();flush()});
@@ -1163,17 +1205,18 @@ function setTarget(id,val){
 
 /* ---- view switch ---- */
 var LASTTODO='list';          // remembers which to-do view (list / calendar / archive) you were on
-function setView(v){if(v!=='read'&&v!=='notes'&&v!=='dues')LASTTODO=v;VIEW=v;applyView();paint()}
-function setSection(s){setView(s==='read'?'read':s==='notes'?'notes':s==='dues'?'dues':LASTTODO)}
-function refresh(){if(VIEW==='read')loadReading();else if(VIEW==='notes')loadNotes();else if(VIEW==='dues')loadDues();else load()}
+function setView(v){if(v!=='read'&&v!=='notes'&&v!=='dues'&&v!=='rout')LASTTODO=v;VIEW=v;applyView();paint()}
+function setSection(s){setView(s==='read'?'read':s==='notes'?'notes':s==='dues'?'dues':s==='rout'?'rout':LASTTODO)}
+function refresh(){if(VIEW==='read')loadReading();else if(VIEW==='notes')loadNotes();else if(VIEW==='dues')loadDues();else if(VIEW==='rout')loadRout();else load()}
 function applyView(){
-  var cal=VIEW==='cal',arch=VIEW==='arch',list=VIEW==='list',read=VIEW==='read',notes=VIEW==='notes',dues=VIEW==='dues',off=read||notes||dues;
+  var cal=VIEW==='cal',arch=VIEW==='arch',list=VIEW==='list',read=VIEW==='read',notes=VIEW==='notes',dues=VIEW==='dues',rout=VIEW==='rout',off=read||notes||dues||rout;
   $('listWrap').style.display=list?'':'none';
   $('calWrap').style.display=cal?'':'none';
   $('archWrap').style.display=arch?'':'none';
   $('readWrap').style.display=read?'':'none';
   $('notesWrap').style.display=notes?'':'none';
   $('duesWrap').style.display=dues?'':'none';
+  $('routWrap').style.display=rout?'':'none';
   $('tabs').style.display=list?'':'none';
   // the to-do counts, banner and filters do not apply to the Reading list
   $('statsRow').style.display=off?'none':'';
@@ -1184,15 +1227,17 @@ function applyView(){
   $('vArch').className=arch?'on':'';
   $('viewsRow').style.display=off?'none':'';          // List / Calendar / Archive belong to the To-do section only
   $('hTodo').style.display=off?'none':'';
-  $('pgTitle').textContent=read?'Reading list':notes?'Notes':dues?'Statutory dues':'To-do list';
+  $('pgTitle').textContent=read?'Reading list':notes?'Notes':dues?'Statutory dues':rout?'Routine checks':'To-do list';
   $('btnNew').style.display=off?'none':'';             // to-do header buttons
   $('sTodo').className=off?'':'on';                   // left-hand section tabs
   $('sRead').className=read?'on':'';
   $('sNotes').className=notes?'on':'';
   $('sDues').className=dues?'on':'';
+  $('sRout').className=rout?'on':'';
   if(read)loadReading();
   if(notes)loadNotes();
   if(dues)loadDues();
+  if(rout)loadRout();
   if(cal&&!CAL){var p=D.today.split('-');CAL={y:+p[0],m:+p[1]-1};CALSEL=D.today}
 }
 
@@ -1448,7 +1493,6 @@ function scStd(){
 }
 /* WhatsApp draft */
 function scSign(){try{return localStorage.getItem('rtt_dsign')||'CA Rahul'}catch(e){return 'CA Rahul'}}
-function scMsgOpen(){$('mScm').classList.add('on');scMsgBuild()}
 function scAddDays(iso,n){var d=new Date(iso+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)}
 function scMsgOpen(w){$('mScm').classList.add('on');if(w)$('scmWin').value=w;scMsgBuild()}
 function scMsgBuild(){
@@ -1476,6 +1520,67 @@ function scCopy(){
   var ta=$('scmTxt'),m=/Regards,\s*\n([^\n]+)\s*$/.exec(ta.value);if(m){try{localStorage.setItem('rtt_dsign',m[1].trim())}catch(e){}}
   function fb(){ta.focus();ta.select();try{document.execCommand('copy');toast('Message copied. Paste it in WhatsApp.')}catch(e){toast('Press Ctrl+C to copy')}}
   if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(ta.value).then(function(){toast('Message copied. Paste it in WhatsApp.')},fb)}else fb();
+}
+
+/* ---- ROUTINE CHECKS (standalone list) ---- */
+var RC=[],RCTAB='due',RCE=null;
+function rcToday(){return nowStr().slice(0,10)}
+function rcAdd(iso,freq){
+  var a=iso.split('-'),y=+a[0],m=+a[1]-1,d=+a[2];
+  if(freq==='Monthly'){var ny=m===11?y+1:y,nm=m===11?0:m+1,last=new Date(ny,nm+1,0).getDate();return ny+'-'+('0'+(nm+1)).slice(-2)+'-'+('0'+Math.min(d,last)).slice(-2)}
+  var t=new Date(Date.UTC(y,m,d));t.setUTCDate(t.getUTCDate()+(freq==='Weekly'?7:freq==='Fortnightly'?14:1));return t.toISOString().slice(0,10)}
+function rcFmt(d){return d?d.split('-').reverse().join('-'):''}
+function rcFind(id){return RC.filter(function(x){return x.id===id})[0]}
+function rcIsDue(x){return !x.next||x.next<=rcToday()}
+function rcDiff(iso){var a=iso.split('-'),b=rcToday().split('-');return Math.round((Date.UTC(+a[0],a[1]-1,+a[2])-Date.UTC(+b[0],b[1]-1,+b[2]))/86400000)}
+function loadRout(){busy(true);google.script.run.withSuccessHandler(function(d){busy(false);RC=d||[];rcRender()}).withFailureHandler(fail).getRoutineAll()}
+function rcSrv(x){google.script.run.withFailureHandler(function(e){fail(e);loadRout()}).saveRoutine([x])}
+function rcInTab(x,t){return t==='all'||(t==='due'?rcIsDue(x):!rcIsDue(x))}
+function rcTab(t){RCTAB=t;rcRender()}
+function rcClear(){$('rcQ').value='';$('rcFC').value='';$('rcFF').value='';$('rcFW').value='';RCTAB='due';rcRender()}
+function rcRender(){
+  var defs=[['due','Due now'],['done','Done / upcoming'],['all','All']];
+  $('rcTabs').innerHTML=defs.map(function(d){return '<button class="tab'+(RCTAB===d[0]?' on':'')+'" onclick="rcTab(\''+d[0]+'\')">'+d[1]+' <i>'+RC.filter(function(x){return rcInTab(x,d[0])}).length+'</i></button>'}).join('');
+  var who={};RC.forEach(function(x){if(x.who)who[x.who]=1});var names=Object.keys(who).sort(function(a,b){return a.toLowerCase()<b.toLowerCase()?-1:1}),cur=$('rcFW').value;
+  $('rcFW').innerHTML='<option value="">Everyone</option>'+names.map(function(n){return '<option value="'+esc(n)+'">'+esc(n)+'</option>'}).join('');if(names.indexOf(cur)>=0)$('rcFW').value=cur;
+  $('dlRcW').innerHTML=names.map(function(n){return '<option value="'+esc(n)+'">'}).join('');
+  var q=($('rcQ').value||'').trim().toLowerCase(),fc=$('rcFC').value,ff=$('rcFF').value,fw=$('rcFW').value,tod=rcToday();
+  var a=RC.filter(function(x){return rcInTab(x,RCTAB)&&(!fc||x.cat===fc)&&(!ff||x.freq===ff)&&(!fw||x.who===fw)&&(!q||(x.text+' '+x.who).toLowerCase().indexOf(q)>=0)});
+  var pos={};RC.forEach(function(r,i){pos[r.id]=i});
+  a.sort(function(x,y){var p=x.next||'',q2=y.next||'';return p<q2?-1:p>q2?1:pos[x.id]-pos[y.id]});
+  var h=a.length?'':'<tr><td colspan="8" class="empty">'+(RC.length?'Nothing in this view.':'No checks yet. Choose Add check to start your list.')+'</td></tr>';
+  a.forEach(function(x){
+    var due=rcIsDue(x),over=x.next&&x.next<tod,n=x.next?rcDiff(x.next):null;
+    var chip=!x.next?'<span class="tm soon">Not done yet</span>':over?'<span class="tm over">'+(-n)+' day'+(n===-1?'':'s')+' overdue</span>':n===0?'<span class="tm soon">Due today</span>':'<span class="tm ok">'+rcFmt(x.next)+'</span>';
+    h+='<tr class="'+(due?(over?'rc-over':'rc-due'):'rc-done')+'"><td><input type="checkbox" aria-label="Mark done" '+(due?'':'checked ')+'onchange="rcTick(\''+x.id+'\',this.checked)"></td>'+
+      '<td class="rt"><b>'+esc(x.text)+'</b></td><td>'+esc(x.freq)+'</td><td><span class="rcc '+(x.cat==='Personal'?'per':'off')+'">'+esc(x.cat)+'</span></td><td>'+esc(x.who)+'</td>'+
+      '<td>'+(x.last?esc(rcFmt(x.last)):'<span style="color:var(--mute)">Never</span>')+'</td><td>'+chip+'</td>'+
+      '<td style="white-space:nowrap"><button class="sm ib" title="Edit" aria-label="Edit" onclick="rcOpen(\''+x.id+'\')">'+ic('edit')+'</button> <button class="sm ib danger" title="Delete" aria-label="Delete" onclick="rcRemove(\''+x.id+'\')">'+ic('x')+'</button></td></tr>';
+  });
+  $('rcBody').innerHTML=h;
+}
+function rcTick(id,on){
+  var x=rcFind(id);if(!x)return;
+  if(on){x.last=rcToday();x.next=rcAdd(x.last,x.freq)}else{x.last='';x.next=''}
+  rcSrv(x);setTimeout(rcRender,350);
+}
+function rcOpen(id){
+  var x=id?rcFind(id):null;RCE=x?x.id:null;
+  $('rcH').textContent=x?'Edit check':'Add check';
+  $('rcText').value=x?x.text:'';$('rcFreq').value=x?x.freq:'Daily';$('rcCat').value=x?x.cat:($('rcFC').value||'Office');$('rcWho').value=x?x.who:($('rcFW').value||'');$('rcNext').value=x?x.next:'';
+  $('rcDel').style.display=x?'':'none';$('mRc').classList.add('on');setTimeout(function(){$('rcText').focus()},50);
+}
+function rcSave(){
+  var text=$('rcText').value.replace(/\s+/g,' ').trim();if(!text){alert('Enter the check.');return}
+  var o=RCE&&rcFind(RCE),x={id:o?o.id:'R'+Date.now(),text:text,freq:$('rcFreq').value,cat:$('rcCat').value,who:$('rcWho').value.replace(/\s+/g,' ').trim(),last:o?o.last:'',next:$('rcNext').value};
+  if(o)RC[RC.indexOf(o)]=x;else RC.push(x);
+  closeM('mRc');rcRender();rcSrv(x);toast('Saved');
+}
+function rcDelete(){var x=RCE&&rcFind(RCE);if(x)rcRemove(x.id,true)}
+function rcRemove(id,m){
+  var x=rcFind(id);if(!x||!confirm('Delete "'+x.text+'"?'))return;
+  RC.splice(RC.indexOf(x),1);if(m)closeM('mRc');rcRender();
+  google.script.run.withFailureHandler(function(e){fail(e);loadRout()}).deleteRoutine(id);
 }
 
 /* ---- WhatsApp lists ---- */
