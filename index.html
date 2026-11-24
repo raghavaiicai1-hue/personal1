@@ -399,6 +399,23 @@ td{border-top-color:#eee8da}
 .rcc{display:inline-block;border-radius:4px;padding:1px 8px;font-size:12px;font-weight:600;background:var(--grybg);color:#4a525e}
 .rcc.off{background:#e3edf6;color:#245b8f}.rcc.per{background:#efe6f6;color:#6a3d8a}
 
+/* ===== leads ===== */
+#ldTable{width:100%;min-width:900px;border-collapse:collapse}
+#ldHead th{cursor:pointer;user-select:none;white-space:nowrap}
+#ldHead th:hover{background:#223a45}
+#ldHead th:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+#ldHead .sa{display:inline-block;width:14px;margin-left:5px;font-weight:400;color:var(--gold);opacity:.55}
+#ldHead .sa::before{content:"\2195"}
+#ldHead th[aria-sort=ascending] .sa,#ldHead th[aria-sort=descending] .sa{opacity:1}
+#ldHead th[aria-sort=ascending] .sa::before{content:"\2191"}
+#ldHead th[aria-sort=descending] .sa::before{content:"\2193"}
+#ldBody td{vertical-align:middle}
+#ldBody tr.ld-over td:first-child{box-shadow:inset 4px 0 0 var(--red)}
+#ldBody tr.ld-soon td:first-child{box-shadow:inset 4px 0 0 #d9a21b}
+#ldBody tr.ld-closed td{color:var(--mute)}
+#ldBody select{font:inherit;padding:5px 7px;border:1px solid var(--line);border-radius:6px;background:#fff}
+#ldBody a.tel{color:inherit;text-decoration:none;border-bottom:1px dotted var(--mute)}
+
 /* ---- printing: a numbered checklist, built into #printArea and the only thing printed ---- */
 #printArea{display:none;font:12px/1.35 Arial,"Segoe UI",sans-serif;color:#000}
 #printArea h1{font-size:19px;margin:0 0 3px}
@@ -468,6 +485,7 @@ td{border-top-color:#eee8da}
   <button id="sNotes" onclick="setSection('notes')"><svg class="i"><use href="#i-note"/></svg>Notes</button>
   <button id="sDues" onclick="setSection('dues')"><svg class="i"><use href="#i-file"/></svg>Statutory dues</button>
   <button id="sRout" onclick="setSection('rout')"><svg class="i"><use href="#i-routine"/></svg>Routine checks</button>
+  <button id="sLeads" onclick="setSection('leads')"><svg class="i"><use href="#i-users"/></svg>Leads</button>
 </nav>
 <div class="shell">
 
@@ -601,7 +619,32 @@ td{border-top-color:#eee8da}
     <div class="panel" style="overflow:auto"><table id="rcTable"><thead><tr><th style="width:44px">Done</th><th>Check</th><th>Frequency</th><th>Category</th><th>Allotted to</th><th>Last done</th><th>Next due</th><th></th></tr></thead><tbody id="rcBody"></tbody></table></div>
     <datalist id="dlRcW"></datalist>
   </div>
+  <div id="leadsWrap" style="display:none">
+    <div class="sdbar"><button class="pri" onclick="ldOpen()"><svg class="i"><use href="#i-plus"/></svg>Add lead</button></div>
+    <div class="tabs" id="ldTabs"></div>
+    <div class="bar">
+      <input type="search" id="ldQ" placeholder="Search party, contact, work, referred by&hellip;" oninput="ldRender()">
+      <select id="ldFS" onchange="ldRender()"><option value="">All statuses</option><option>New</option><option>Contacted</option><option>Follow-up</option><option>Proposal sent</option><option>Converted</option><option>Lost</option></select>
+      <select id="ldFW" onchange="ldRender()"></select>
+      <button class="sm" onclick="ldClear()">Clear all filters</button>
+    </div>
+    <div class="panel" style="overflow:auto"><table id="ldTable"><thead><tr id="ldHead"></tr></thead><tbody id="ldBody"></tbody></table></div>
+    <datalist id="dlLdW"></datalist><datalist id="dlLdR"></datalist>
+  </div>
 </main>
+<div class="modal" id="mLd"><div class="box" style="max-width:600px">
+  <h2 id="ldH">Add lead</h2>
+  <div class="f">
+    <div class="w"><label>Party</label><input id="ldParty" autocomplete="off"></div>
+    <div><label>Contact person name</label><input id="ldPerson" autocomplete="off"></div>
+    <div><label>Contact no</label><input id="ldPhone" inputmode="tel" autocomplete="off"></div>
+    <div><label>Work option</label><input id="ldWork" list="dlLdW" autocomplete="off" placeholder="e.g. GST returns"></div>
+    <div><label>Referred by</label><input id="ldRef" list="dlLdR" autocomplete="off"></div>
+    <div><label>Due date</label><input type="date" id="ldDue"></div>
+    <div><label>Status</label><select id="ldStatus"><option>New</option><option>Contacted</option><option>Follow-up</option><option>Proposal sent</option><option>Converted</option><option>Lost</option></select></div>
+  </div>
+  <div class="foot"><button class="danger" id="ldDel" style="margin-right:auto" onclick="ldDelete()">Delete</button><button onclick="closeM('mLd')">Cancel</button><button class="pri" onclick="ldSave()">Save</button></div>
+</div></div>
 <div class="modal" id="mRc"><div class="box" style="max-width:560px">
   <h2 id="rcH">Add check</h2>
   <div class="f">
@@ -765,7 +808,7 @@ td{border-top-color:#eee8da}
   function get(k,d){try{var v=LS.getItem(P+k);return v?JSON.parse(v):d}catch(e){return d}}
   var warned=false;
   function put(k,v){try{LS.setItem(P+k,JSON.stringify(v))}catch(e){if(!warned){warned=true;alert('This browser cannot store the offline copy (private window or storage full). Changes made now may be lost.')}}}
-  var cfg=get('cfg',{url:'',key:''}),cache=get('cache',{data:null,reading:null,notes:null,stat:null,rout:null}),queue=get('queue',[]),issues=get('issues',[]),lastSync=get('last',0);
+  var cfg=get('cfg',{url:'',key:''}),cache=get('cache',{data:null,reading:null,notes:null,stat:null,rout:null,leads:null}),queue=get('queue',[]),issues=get('issues',[]),lastSync=get('last',0);
   var flushing=false,dirty=false,state='',lastErr=null,connOpen=false;
 
   /* ---------- helpers ---------- */
@@ -826,6 +869,13 @@ td{border-top-color:#eee8da}
     /* notes */
     /* statutory calendar */
     /* routine checks */
+    /* leads */
+    saveLead:function(a){var Z=cache.leads;if(!Z)return true;var S=['New','Contacted','Follow-up','Proposal sent','Converted','Lost'];
+      (Array.isArray(a[0])?a[0]:[a[0]]).forEach(function(p){var party=norm(p.party).slice(0,200);if(!party)throw new Error('The party name is required');
+        var due=String(p.due||'');if(due&&!/^\d{4}-\d{2}-\d{2}$/.test(due))throw new Error('Invalid date');
+        var row={id:p.id,party:party,person:norm(p.person).slice(0,120),phone:norm(p.phone).slice(0,40),work:norm(p.work).slice(0,200),ref:norm(p.ref).slice(0,120),due:due,status:S.indexOf(p.status)>=0?p.status:'New',created:/^\d{4}-\d{2}-\d{2}$/.test(String(p.created||''))?String(p.created):''},i=idx(Z,p.id);
+        if(i>=0)Z[i]=row;else Z.push(row)});return true},
+    deleteLead:function(a){var Z=cache.leads;if(!Z)return true;var i=idx(Z,a[0]);if(i>=0)Z.splice(i,1);return true},
     saveRoutine:function(a){var Z=cache.rout;if(!Z)return true;var F=['Daily','Weekly','Fortnightly','Monthly'],C=['Office','Personal'],dt=function(v){v=String(v||'');if(v&&!/^\d{4}-\d{2}-\d{2}$/.test(v))throw new Error('Invalid date');return v};
       (Array.isArray(a[0])?a[0]:[a[0]]).forEach(function(p){var text=norm(p.text).slice(0,300);if(!text)throw new Error('The check is required');
         var row={id:p.id,text:text,freq:F.indexOf(p.freq)>=0?p.freq:'Daily',cat:C.indexOf(p.cat)>=0?p.cat:'Office',who:norm(p.who).slice(0,100),last:dt(p.last),next:dt(p.next)},i=idx(Z,p.id);if(i>=0)Z[i]=row;else Z.push(row)});return true},
@@ -867,7 +917,7 @@ td{border-top-color:#eee8da}
   /* one queued change per thing: a newer save of the same thing replaces the older one */
   function qkey(fn,a){
     if(fn==='saveReading')return 'sr:'+a[0].id;if(fn==='saveReadingSources')return 'ss:'+a[0];if(fn==='saveReadingList')return 'sl:'+a[0];
-    if(fn==='setTarget')return 'tg:'+a[0];if(fn==='setFlag')return 'fl:'+a[0]+a[1];if(fn==='saveNote')return 'sn:'+a[0].id;if(fn==='saveRoutine')return a[0].length===1?'sr:'+a[0][0].id:null;if(fn==='saveStat')return a[0].length===1?'ss:'+a[0][0].id:null;if(fn==='saveNoteFolders')return 'nf';if(fn==='saveStaff')return 'staff';if(fn==='saveSettings')return 'set';return null}
+    if(fn==='setTarget')return 'tg:'+a[0];if(fn==='setFlag')return 'fl:'+a[0]+a[1];if(fn==='saveNote')return 'sn:'+a[0].id;if(fn==='saveLead')return a[0].length===1?'sl:'+a[0][0].id:null;if(fn==='saveRoutine')return a[0].length===1?'sr:'+a[0][0].id:null;if(fn==='saveStat')return a[0].length===1?'ss:'+a[0][0].id:null;if(fn==='saveNoteFolders')return 'nf';if(fn==='saveStaff')return 'staff';if(fn==='saveSettings')return 'set';return null}
 
   /* ---------- the queue ---------- */
   function flush(){
@@ -884,7 +934,7 @@ td{border-top-color:#eee8da}
   }
   function reload(){            // after a backlog was sent: show what the Sheet now holds
     try{window.load()}catch(e){}
-    try{if(window.VIEW==='read')window.loadReading();if(window.VIEW==='notes')window.loadNotes();if(window.VIEW==='dues')window.loadDues();if(window.VIEW==='rout')window.loadRout()}catch(e){}
+    try{if(window.VIEW==='read')window.loadReading();if(window.VIEW==='notes')window.loadNotes();if(window.VIEW==='dues')window.loadDues();if(window.VIEW==='rout')window.loadRout();if(window.VIEW==='leads')window.loadLeads()}catch(e){}
   }
   function write(fn,args,ok,fail){
     if(!cfg.url||!cfg.key){busyOff();openConn();return}
@@ -899,7 +949,7 @@ td{border-top-color:#eee8da}
   }
   function read(fn,ok,fail){
     if(!cfg.url||!cfg.key){busyOff();openConn();return}
-    var key=fn==='getData'?'data':fn==='getNotesAll'?'notes':fn==='getStatAll'?'stat':fn==='getRoutineAll'?'rout':'reading';
+    var key=fn==='getData'?'data':fn==='getNotesAll'?'notes':fn==='getStatAll'?'stat':fn==='getRoutineAll'?'rout':fn==='getLeadsAll'?'leads':'reading';
     function local(){
       if(!cache[key]){busyOff();fail(new Error('No saved data on this device yet. Connect to the internet once to download it.'));return}
       ok(key==='data'?viewData():clone(cache[key]));
@@ -911,7 +961,7 @@ td{border-top-color:#eee8da}
     });
   }
   var API={};
-  ['getData','getReadingAll','getNotesAll','getStatAll','getRoutineAll'].forEach(function(f){API[f]=function(ok,fail){read(f,ok,fail)}});
+  ['getData','getReadingAll','getNotesAll','getStatAll','getRoutineAll','getLeadsAll'].forEach(function(f){API[f]=function(ok,fail){read(f,ok,fail)}});
   Object.keys(Local).forEach(function(f){API[f]=function(ok,fail,args){write(f,args,ok,fail)}});
   function Runner(ok,fail){
     var r={withSuccessHandler:function(f){return Runner(f,fail)},withFailureHandler:function(f){return Runner(ok,f)}};
@@ -973,7 +1023,7 @@ td{border-top-color:#eee8da}
       '<div class="foot"><button id="connNow">Sync now</button><button id="connX">Close</button><button class="pri" id="connOk">Save and connect</button></div></div>';
     document.body.appendChild(modal);
     document.getElementById('connX').onclick=closeConn;document.getElementById('connOk').onclick=saveConn;
-    document.getElementById('connNow').onclick=function(){closeConn();lastErr=null;flush().then(function(){try{window.load()}catch(e){}try{if(window.VIEW==='read')window.loadReading();if(window.VIEW==='notes')window.loadNotes();if(window.VIEW==='dues')window.loadDues();if(window.VIEW==='rout')window.loadRout()}catch(e){}})};
+    document.getElementById('connNow').onclick=function(){closeConn();lastErr=null;flush().then(function(){try{window.load()}catch(e){}try{if(window.VIEW==='read')window.loadReading();if(window.VIEW==='notes')window.loadNotes();if(window.VIEW==='dues')window.loadDues();if(window.VIEW==='rout')window.loadRout();if(window.VIEW==='leads')window.loadLeads()}catch(e){}})};
     setState();if(!cfg.url||!cfg.key)openConn();
   }
   window.addEventListener('online',function(){lastErr=null;setState();flush()});
@@ -1205,11 +1255,11 @@ function setTarget(id,val){
 
 /* ---- view switch ---- */
 var LASTTODO='list';          // remembers which to-do view (list / calendar / archive) you were on
-function setView(v){if(v!=='read'&&v!=='notes'&&v!=='dues'&&v!=='rout')LASTTODO=v;VIEW=v;applyView();paint()}
-function setSection(s){setView(s==='read'?'read':s==='notes'?'notes':s==='dues'?'dues':s==='rout'?'rout':LASTTODO)}
-function refresh(){if(VIEW==='read')loadReading();else if(VIEW==='notes')loadNotes();else if(VIEW==='dues')loadDues();else if(VIEW==='rout')loadRout();else load()}
+function setView(v){if(v!=='read'&&v!=='notes'&&v!=='dues'&&v!=='rout'&&v!=='leads')LASTTODO=v;VIEW=v;applyView();paint()}
+function setSection(s){setView(s==='read'?'read':s==='notes'?'notes':s==='dues'?'dues':s==='rout'?'rout':s==='leads'?'leads':LASTTODO)}
+function refresh(){if(VIEW==='read')loadReading();else if(VIEW==='notes')loadNotes();else if(VIEW==='dues')loadDues();else if(VIEW==='rout')loadRout();else if(VIEW==='leads')loadLeads();else load()}
 function applyView(){
-  var cal=VIEW==='cal',arch=VIEW==='arch',list=VIEW==='list',read=VIEW==='read',notes=VIEW==='notes',dues=VIEW==='dues',rout=VIEW==='rout',off=read||notes||dues||rout;
+  var cal=VIEW==='cal',arch=VIEW==='arch',list=VIEW==='list',read=VIEW==='read',notes=VIEW==='notes',dues=VIEW==='dues',rout=VIEW==='rout',leads=VIEW==='leads',off=read||notes||dues||rout||leads;
   $('listWrap').style.display=list?'':'none';
   $('calWrap').style.display=cal?'':'none';
   $('archWrap').style.display=arch?'':'none';
@@ -1217,6 +1267,7 @@ function applyView(){
   $('notesWrap').style.display=notes?'':'none';
   $('duesWrap').style.display=dues?'':'none';
   $('routWrap').style.display=rout?'':'none';
+  $('leadsWrap').style.display=leads?'':'none';
   $('tabs').style.display=list?'':'none';
   // the to-do counts, banner and filters do not apply to the Reading list
   $('statsRow').style.display=off?'none':'';
@@ -1227,17 +1278,19 @@ function applyView(){
   $('vArch').className=arch?'on':'';
   $('viewsRow').style.display=off?'none':'';          // List / Calendar / Archive belong to the To-do section only
   $('hTodo').style.display=off?'none':'';
-  $('pgTitle').textContent=read?'Reading list':notes?'Notes':dues?'Statutory dues':rout?'Routine checks':'To-do list';
+  $('pgTitle').textContent=read?'Reading list':notes?'Notes':dues?'Statutory dues':rout?'Routine checks':leads?'Leads':'To-do list';
   $('btnNew').style.display=off?'none':'';             // to-do header buttons
   $('sTodo').className=off?'':'on';                   // left-hand section tabs
   $('sRead').className=read?'on':'';
   $('sNotes').className=notes?'on':'';
   $('sDues').className=dues?'on':'';
   $('sRout').className=rout?'on':'';
+  $('sLeads').className=leads?'on':'';
   if(read)loadReading();
   if(notes)loadNotes();
   if(dues)loadDues();
   if(rout)loadRout();
+  if(leads)loadLeads();
   if(cal&&!CAL){var p=D.today.split('-');CAL={y:+p[0],m:+p[1]-1};CALSEL=D.today}
 }
 
@@ -1581,6 +1634,66 @@ function rcRemove(id,m){
   var x=rcFind(id);if(!x||!confirm('Delete "'+x.text+'"?'))return;
   RC.splice(RC.indexOf(x),1);if(m)closeM('mRc');rcRender();
   google.script.run.withFailureHandler(function(e){fail(e);loadRout()}).deleteRoutine(id);
+}
+
+/* ---- LEADS (standalone list) ---- */
+var LD=[],LDTAB='open',LDSORT={k:'due',dir:1},LDE=null,LD_T=null;
+var LD_STATUS=['New','Contacted','Follow-up','Proposal sent','Converted','Lost'];
+var LD_WORK=['GST registration','GST returns','GST notice / appeal','Income tax return','Tax audit','Statutory audit','Accounting / bookkeeping','FEMA','ROC / company matters','Other'];
+var LD_COLS=[['party','Party'],['person','Contact person'],['phone','Contact no'],['work','Work option'],['ref','Referred by'],['due','Due date'],['status','Status']];
+function ldToday(){return nowStr().slice(0,10)}
+function ldFmt(d){return d?d.split('-').reverse().join('-'):''}
+function ldFind(id){return LD.filter(function(x){return x.id===id})[0]}
+function ldClosed(x){return x.status==='Converted'||x.status==='Lost'}
+function ldDiff(iso){var a=iso.split('-'),b=ldToday().split('-');return Math.round((Date.UTC(+a[0],a[1]-1,+a[2])-Date.UTC(+b[0],b[1]-1,+b[2]))/86400000)}
+function loadLeads(){busy(true);google.script.run.withSuccessHandler(function(d){busy(false);LD=d||[];ldRender()}).withFailureHandler(fail).getLeadsAll()}
+function ldSrv(x){google.script.run.withFailureHandler(function(e){fail(e);loadLeads()}).saveLead([x])}
+function ldInTab(x,t){return t==='all'||(t==='open'?!ldClosed(x):t==='won'?x.status==='Converted':x.status==='Lost')}
+function ldTab(t){LDTAB=t;ldRender()}
+function ldSort(k){LDSORT=LDSORT.k===k?{k:k,dir:-LDSORT.dir}:{k:k,dir:1};ldRender()}
+function ldClear(){$('ldQ').value='';$('ldFS').value='';$('ldFW').value='';LDTAB='open';ldRender()}
+function ldUniq(f){var m={};LD.forEach(function(x){if(x[f])m[x[f]]=1});return Object.keys(m).sort(function(a,b){return a.toLowerCase()<b.toLowerCase()?-1:1})}
+function ldRender(){
+  var defs=[['open','Open'],['won','Converted'],['lost','Lost'],['all','All']];
+  $('ldTabs').innerHTML=defs.map(function(d){return '<button class="tab'+(LDTAB===d[0]?' on':'')+'" onclick="ldTab(\''+d[0]+'\')">'+d[1]+' <i>'+LD.filter(function(x){return ldInTab(x,d[0])}).length+'</i></button>'}).join('');
+  var works=ldUniq('work'),cur=$('ldFW').value;
+  $('ldFW').innerHTML='<option value="">All work options</option>'+works.map(function(n){return '<option value="'+esc(n)+'">'+esc(n)+'</option>'}).join('');if(works.indexOf(cur)>=0)$('ldFW').value=cur;
+  var wl=LD_WORK.slice();works.forEach(function(w){if(wl.indexOf(w)<0)wl.push(w)});
+  $('dlLdW').innerHTML=wl.map(function(n){return '<option value="'+esc(n)+'">'}).join('');
+  $('dlLdR').innerHTML=ldUniq('ref').map(function(n){return '<option value="'+esc(n)+'">'}).join('');
+  $('ldHead').innerHTML=LD_COLS.map(function(c){return '<th tabindex="0" aria-sort="'+(LDSORT.k===c[0]?(LDSORT.dir===1?'ascending':'descending'):'none')+'" onclick="ldSort(\''+c[0]+'\')" onkeydown="if(event.key===\'Enter\')ldSort(\''+c[0]+'\')">'+c[1]+'<b class="sa"></b></th>'}).join('')+'<th style="cursor:default"></th>';
+  var q=($('ldQ').value||'').trim().toLowerCase(),fs=$('ldFS').value,fw=$('ldFW').value,tod=ldToday();
+  var a=LD.filter(function(x){return ldInTab(x,LDTAB)&&(!fs||x.status===fs)&&(!fw||x.work===fw)&&(!q||(x.party+' '+x.person+' '+x.phone+' '+x.work+' '+x.ref).toLowerCase().indexOf(q)>=0)});
+  var pos={};LD.forEach(function(r,i){pos[r.id]=i});var k=LDSORT.k,dir=LDSORT.dir;
+  a.sort(function(x,y){var p=String(x[k]||'').toLowerCase(),q2=String(y[k]||'').toLowerCase();
+    if(!p&&q2)return 1;if(p&&!q2)return -1;var c=p<q2?-1:p>q2?1:0;if(c)return c*dir;return pos[x.id]-pos[y.id]});
+  var h=a.length?'':'<tr><td colspan="8" class="empty">'+(LD.length?'No leads in this view.':'No leads yet. Choose Add lead to record your first one.')+'</td></tr>';
+  a.forEach(function(x){
+    var closed=ldClosed(x),n=x.due?ldDiff(x.due):null,cls=closed?'ld-closed':n!==null&&n<0?'ld-over':n!==null&&n<=2?'ld-soon':'';
+    var dchip=x.due?'<span class="tm'+(closed?'':n<0?' over':n<=2?' soon':'')+'">'+esc(ldFmt(x.due))+'</span>'+(closed||n===null?'':n<0?'<small style="display:block;color:var(--red)">'+(-n)+' day'+(n===-1?'':'s')+' overdue</small>':n===0?'<small style="display:block;color:var(--amb)">Today</small>':''):'<span style="color:var(--mute)">No date</span>';
+    var ph=String(x.phone||'').replace(/[^\d+]/g,'');
+    h+='<tr class="'+cls+'"><td><b>'+esc(x.party)+'</b></td><td>'+esc(x.person)+'</td><td>'+(x.phone?(ph?'<a class="tel" href="tel:'+esc(ph)+'">'+esc(x.phone)+'</a>':esc(x.phone)):'')+'</td><td>'+esc(x.work)+'</td><td>'+esc(x.ref)+'</td><td>'+dchip+'</td>'+
+      '<td><select aria-label="Status" onchange="ldSetStatus(\''+x.id+'\',this.value)">'+LD_STATUS.map(function(s){return '<option'+(x.status===s?' selected':'')+'>'+s+'</option>'}).join('')+'</select></td>'+
+      '<td style="white-space:nowrap"><button class="sm ib" title="Edit" aria-label="Edit" onclick="ldOpen(\''+x.id+'\')">'+ic('edit')+'</button> <button class="sm ib danger" title="Delete" aria-label="Delete" onclick="ldRemove(\''+x.id+'\')">'+ic('x')+'</button></td></tr>';
+  });
+  $('ldBody').innerHTML=h;
+}
+function ldSetStatus(id,v){var x=ldFind(id);if(!x||x.status===v)return;x.status=v;ldSrv(x);clearTimeout(LD_T);LD_T=setTimeout(ldRender,500)}
+function ldOpen(id){
+  var x=id?ldFind(id):null;LDE=x?x.id:null;$('ldH').textContent=x?'Edit lead':'Add lead';
+  $('ldParty').value=x?x.party:'';$('ldPerson').value=x?x.person:'';$('ldPhone').value=x?x.phone:'';$('ldWork').value=x?x.work:'';$('ldRef').value=x?x.ref:'';$('ldDue').value=x?x.due:'';$('ldStatus').value=x?x.status:'New';
+  $('ldDel').style.display=x?'':'none';$('mLd').classList.add('on');setTimeout(function(){$('ldParty').focus()},50);
+}
+function ldSave(){
+  var c=function(id){return $(id).value.replace(/\s+/g,' ').trim()},party=c('ldParty');if(!party){alert('Enter the party name.');return}
+  var o=LDE&&ldFind(LDE),x={id:o?o.id:'L'+Date.now(),party:party,person:c('ldPerson'),phone:c('ldPhone'),work:c('ldWork'),ref:c('ldRef'),due:$('ldDue').value,status:$('ldStatus').value,created:o?o.created:ldToday()};
+  if(o)LD[LD.indexOf(o)]=x;else LD.push(x);closeM('mLd');ldRender();ldSrv(x);toast('Saved');
+}
+function ldDelete(){var x=LDE&&ldFind(LDE);if(x)ldRemove(x.id,true)}
+function ldRemove(id,m){
+  var x=ldFind(id);if(!x||!confirm('Delete the lead "'+x.party+'"?'))return;
+  LD.splice(LD.indexOf(x),1);if(m)closeM('mLd');ldRender();
+  google.script.run.withFailureHandler(function(e){fail(e);loadLeads()}).deleteLead(id);
 }
 
 /* ---- WhatsApp lists ---- */
